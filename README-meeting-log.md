@@ -10,3 +10,7 @@ i'm assuming this is the currebt to do list:
 
 that'a all i can think of, text me if you see this
 -M
+
+//10.12.18
+Hey so I don't really know how to use git that well. Can you set up the git repo?
+-A
