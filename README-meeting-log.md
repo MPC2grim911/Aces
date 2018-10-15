@@ -21,3 +21,7 @@ Current todo list:
 * start filling in what portions of the shells we can (review if needed) by minimal AI deadline
 * remember to comment on what was done to the code and commit/update the git repo
 -M
+
+//10.14.18
+Ok! The minimal AI is due on 11/4/18. I'll definitely start working on Monday since I'll have time. Do you have an openlabs environment running?
+-A
