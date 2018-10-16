@@ -29,3 +29,7 @@ Ok! The minimal AI is due on 11/4/18. I'll definitely start working on Monday si
 //10.14.18
 Not at the moment, working on other group projects materials for their designated meeting times. I will see what I can do after I get back from the meetings. Can you update me about what you did when you commit to the repo? That way I can go over and work on what I can in the evening.
 -M
+
+//10.15.18
+I've had no internet or power for the whole day unfortunately... The santa ana winds had my whole neighborhood in a blackout. I'll see what I can do for now.
+-A
