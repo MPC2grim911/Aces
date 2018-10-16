@@ -33,3 +33,4 @@ Not at the moment, working on other group projects materials for their designate
 //10.15.18
 I've had no internet or power for the whole day unfortunately... The santa ana winds had my whole neighborhood in a blackout. I'll see what I can do for now.
 -A
+Update: I've read the entire document thoroughly now. I'm going to try to solve the problem with pseudo code on a piece of paper for now. The minimal AI challenge seems really easy, we just need to get the gold one time and our average will be high enough. -A
