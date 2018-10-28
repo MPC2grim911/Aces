@@ -18,13 +18,19 @@
 // ======================================================================
 
 #include "MyAI.hpp"
+#include <iostream>
+#include <stack>
+
+using namespace std;
+
 
 MyAI::MyAI() : Agent()
 {
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
-	
+	goBack = false;
+	moves = 0;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -43,11 +49,64 @@ Agent::Action MyAI::getAction
 	// YOUR CODE BEGINS
 	// ======================================================================
 	
+	if (goBack)
+	{
+		if (!retrace.empty())
+		{
+			cout << "testing" << endl;
+			Action temp = retrace.top();
+			retrace.pop();
+			return temp;
+		}
+		else
+		{
+			return CLIMB;
+		}
+
+		cout << " got Error" << endl;
+	}
+	else
+	{
+		if (glitter)
+		{
+			cout << "Found gold" << endl;
+			goBack = true;
+			retrace.push(TURN_LEFT);
+			retrace.push(TURN_LEFT);
+			return (GRAB);
+
+		}
+
+		if (bump)
+		{
+			cout << "Hit wall" << endl;
+			retrace.push(TURN_RIGHT);
+			return TURN_LEFT;
+		}
+
+		if (!stench && !breeze)
+		{
+			cout << "Moved once" << endl;
+			retrace.push(FORWARD);
+			goBack = true;
+			retrace.push(TURN_LEFT);
+			retrace.push(TURN_LEFT);
+			return FORWARD;
+			
+
+
+		}
+
+	}
+	
+	cout << "climbed out" << endl;
 	return CLIMB;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
 }
+
+
 
 // ======================================================================
 // YOUR CODE BEGINS

@@ -21,6 +21,10 @@
 #define MYAI_LOCK
 
 #include "Agent.hpp"
+#include <iostream>
+#include <stack>
+
+using namespace std;
 
 class MyAI : public Agent
 {
@@ -39,15 +43,10 @@ public:
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
-	{
-	if (bump) //turn left if hit a wall
-	return TURN_LEFT;
+	stack <Action> retrace;
+	int moves;
+	bool goBack;
 	
-	if (glitter) //grab gold if notice glitter
-	return GRAB;
-	
-	
-	}
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
