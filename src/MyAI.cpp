@@ -77,10 +77,25 @@ Agent::Action MyAI::getAction
 
 		}
 
+		if (moves == 0 && (stench || breeze))
+		{
+			cout << "1st turn" << endl;
+			return CLIMB;
+		}
+
+		if ((moves > 1) || stench || breeze)
+		{
+			cout << "too many moves" << endl;
+			goBack = true;
+			retrace.push(TURN_LEFT);
+			return TURN_LEFT;
+		}
+
 		if (bump)
 		{
 			cout << "Hit wall" << endl;
 			retrace.push(TURN_RIGHT);
+			moves++;
 			return TURN_LEFT;
 		}
 
@@ -88,19 +103,19 @@ Agent::Action MyAI::getAction
 		{
 			cout << "Moved once" << endl;
 			retrace.push(FORWARD);
-			goBack = true;
-			retrace.push(TURN_LEFT);
-			retrace.push(TURN_LEFT);
+			moves++;
+			cout << moves << endl;
 			return FORWARD;
 			
 
 
 		}
 
+		
 	}
 	
 	cout << "climbed out" << endl;
-	return CLIMB;
+	
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
