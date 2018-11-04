@@ -53,7 +53,6 @@ Agent::Action MyAI::getAction
 	{
 		if (!retrace.empty())
 		{
-			cout << "testing" << endl;
 			Action temp = retrace.top();
 			retrace.pop();
 			return temp;
@@ -62,30 +61,24 @@ Agent::Action MyAI::getAction
 		{
 			return CLIMB;
 		}
-
-		cout << " got Error" << endl;
 	}
 	else
 	{
 		if (glitter)
 		{
-			cout << "Found gold" << endl;
 			goBack = true;
 			retrace.push(TURN_LEFT);
 			retrace.push(TURN_LEFT);
 			return (GRAB);
-
 		}
 
 		if (moves == 0 && (stench || breeze))
 		{
-			cout << "1st turn" << endl;
 			return CLIMB;
 		}
 
 		if ((moves > 1) || stench || breeze)
 		{
-			cout << "too many moves" << endl;
 			goBack = true;
 			retrace.push(TURN_LEFT);
 			return TURN_LEFT;
@@ -93,7 +86,6 @@ Agent::Action MyAI::getAction
 
 		if (bump)
 		{
-			cout << "Hit wall" << endl;
 			retrace.push(TURN_RIGHT);
 			moves++;
 			return TURN_LEFT;
@@ -101,20 +93,11 @@ Agent::Action MyAI::getAction
 
 		if (!stench && !breeze)
 		{
-			cout << "Moved once" << endl;
 			retrace.push(FORWARD);
 			moves++;
-			cout << moves << endl;
 			return FORWARD;
-			
-
-
 		}
-
-		
 	}
-	
-	cout << "climbed out" << endl;
 	
 	// ======================================================================
 	// YOUR CODE ENDS
