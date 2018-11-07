@@ -31,6 +31,9 @@ MyAI::MyAI() : Agent()
 	// ======================================================================
 	goBack = false;
 	moves = 0;
+	
+	xPos = 0; //player initial position, change if needed
+	yPos = 0;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -71,13 +74,15 @@ Agent::Action MyAI::getAction
 			retrace.push(TURN_LEFT);
 			return (GRAB);
 		}
+		
+		//cout << xPos << ", " << yPos << endl;
 
-		if (moves == 0 && (stench || breeze))
+		if (moves == 0 && (stench || breeze)) //first block only
 		{
 			return CLIMB;
 		}
 
-		if ((moves > 1) || stench || breeze)
+		if ((moves > 1) || stench || breeze) //revise
 		{
 			goBack = true;
 			retrace.push(TURN_LEFT);
@@ -95,6 +100,7 @@ Agent::Action MyAI::getAction
 		{
 			retrace.push(FORWARD);
 			moves++;
+			//player position changes
 			return FORWARD;
 		}
 	}
