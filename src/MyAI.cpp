@@ -34,6 +34,13 @@ MyAI::MyAI() : Agent()
 	
 	xPos = 0; //player initial position, change if needed
 	yPos = 0;
+	dir = 0; //0 is E, 1 is N, 2 is W, 3 is S at the moment
+	
+	xWall = false; // true when bump into wall and establishes limits
+	yWall = false;
+	xLim = -1; //changed when bump
+	yLim = -1;
+	
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -75,7 +82,7 @@ Agent::Action MyAI::getAction
 			return (GRAB);
 		}
 		
-		//cout << xPos << ", " << yPos << endl;
+		//cout << xPos << ", " << yPos << endl << dir << endl;
 
 		if (moves == 0 && (stench || breeze)) //first block only
 		{
