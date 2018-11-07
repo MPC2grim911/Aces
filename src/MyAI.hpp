@@ -49,6 +49,12 @@ public:
 	
 	int xPos; //player position
 	int yPos;
+	int dir;
+	
+	bool xWall; //max boundaries
+	bool yWall;
+	int xLim;
+	int yLim;
 	
 	// ======================================================================
 	// YOUR CODE ENDS
