@@ -92,6 +92,14 @@ Agent::Action MyAI::getAction
 		if ((moves > 1) || stench || breeze) //revise
 		{
 			goBack = true;
+			if(dir == 0) //180 degrees turn
+				dir = 2;
+			if(dir == 1)
+				dir = 3;
+			if(dir == 2)
+				dir = 0;
+			if(dir == 3)
+				dir = 1;
 			retrace.push(TURN_LEFT);
 			return TURN_LEFT;
 		}
@@ -100,6 +108,30 @@ Agent::Action MyAI::getAction
 		{
 			retrace.push(TURN_RIGHT);
 			moves++;
+			if(dir == 0){ 		
+				xPos -= 1; //to cancel out the FORWARD move position change in navigation
+				if(!xWall){//finds max dimensions of the maze
+					xLim = xPos;
+					xWall = true;
+				}
+				dir = 1; //left turn directions
+			}
+			if(dir == 1){
+				yPos -= 1;
+				if(!yWall){
+					yLim = yPos;
+					yWall = true;
+				}
+				dir = 2;
+			}
+			if(dir == 2){
+				xPos = 0;
+				dir = 3;
+			}
+			if(dir == 3){
+				yPos = 0;
+				dir = 4;
+			}
 			return TURN_LEFT;
 		}
 
@@ -107,7 +139,14 @@ Agent::Action MyAI::getAction
 		{
 			retrace.push(FORWARD);
 			moves++;
-			//player position changes
+			if(dir == 0)//player position changes
+				xPos += 1;
+			if(dir == 1)
+				yPos += 1;
+			if(dir == 2)
+				xPos -= 1;
+			if(dir == 3)
+				yPos -= 1;
 			return FORWARD;
 		}
 	}
