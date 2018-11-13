@@ -43,12 +43,14 @@ public:
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
+	struct Point{
+		int x, y;
+	};
 	stack <Action> retrace;
 	int moves;
 	bool goBack;
 	
-	int xPos; //player position
-	int yPos;
+	Point Pos; //player position
 	int dir;
 	
 	bool xWall; //max boundaries
