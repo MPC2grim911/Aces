@@ -32,8 +32,8 @@ MyAI::MyAI() : Agent()
 	goBack = false;
 	moves = 0;
 	
-	xPos = 0; //player initial position, change if needed
-	yPos = 0;
+	Pos.x = 0; //player initial position, change if needed
+	Pos.y = 0;
 	dir = 0; //0 is E, 1 is N, 2 is W, 3 is S at the moment
 	
 	xWall = false; // true when bump into wall and establishes limits
@@ -109,27 +109,27 @@ Agent::Action MyAI::getAction
 			retrace.push(TURN_RIGHT);
 			moves++;
 			if(dir == 0){ 		
-				xPos -= 1; //to cancel out the FORWARD move position change in navigation
+				Pos.x -= 1; //to cancel out the FORWARD move position change in navigation
 				if(!xWall){//finds max dimensions of the maze
-					xLim = xPos;
+					xLim = Pos.x;
 					xWall = true;
 				}
 				dir = 1; //left turn directions
 			}
 			if(dir == 1){
-				yPos -= 1;
+				Pos.y -= 1;
 				if(!yWall){
-					yLim = yPos;
+					yLim = Pos.y;
 					yWall = true;
 				}
 				dir = 2;
 			}
 			if(dir == 2){
-				xPos = 0;
+				Pos.x = 0;
 				dir = 3;
 			}
 			if(dir == 3){
-				yPos = 0;
+				Pos.y = 0;
 				dir = 4;
 			}
 			return TURN_LEFT;
@@ -140,13 +140,13 @@ Agent::Action MyAI::getAction
 			retrace.push(FORWARD);
 			moves++;
 			if(dir == 0)//player position changes
-				xPos += 1;
+				Pos.x += 1;
 			if(dir == 1)
-				yPos += 1;
+				Pos.y += 1;
 			if(dir == 2)
-				xPos -= 1;
+				Pos.x -= 1;
 			if(dir == 3)
-				yPos -= 1;
+				Pos.y -= 1;
 			return FORWARD;
 		}
 	}
