@@ -20,6 +20,7 @@
 #include "MyAI.hpp"
 #include <iostream>
 #include <stack>
+#include <map>
 
 using namespace std;
 
@@ -40,6 +41,9 @@ MyAI::MyAI() : Agent()
 	yWall = false;
 	xLim = -1; //changed when bump
 	yLim = -1;
+	
+	int xWump = -1; //changed when wumpus is found and confirmed
+	int yWump = -1;
 	
 	// ======================================================================
 	// YOUR CODE ENDS
