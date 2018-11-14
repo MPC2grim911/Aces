@@ -45,6 +45,7 @@ public:
 	// ======================================================================
 	struct Point{
 		int x, y;
+		bool &operator==(const Point &p) const;
 	};
 	stack <Action> retrace;
 	int moves;
@@ -58,6 +59,9 @@ public:
 	int xLim;
 	int yLim;
 	
+	vector<Point> safe;
+	vector<Point> testPos;
+	vector<Point> explore;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
