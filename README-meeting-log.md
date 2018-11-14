@@ -34,3 +34,6 @@ Not at the moment, working on other group projects materials for their designate
 I've had no internet or power for the whole day unfortunately... The santa ana winds had my whole neighborhood in a blackout. I'll see what I can do for now.
 -A
 Update: I've read the entire document thoroughly now. I'm going to try to solve the problem with pseudo code on a piece of paper for now. For the minimal AI, the file by default passes this test. We just need to have it compile on openlabs to get past this check because the average default score is 0 which is higher than -10.
+
+//11.13.18
+Multimap STL link: https://www.geeksforgeeks.org/multimap-associative-containers-the-c-standard-template-library-stl/
