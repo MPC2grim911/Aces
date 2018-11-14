@@ -23,6 +23,7 @@
 #include "Agent.hpp"
 #include <iostream>
 #include <stack>
+#include <map>
 
 using namespace std;
 
@@ -56,6 +57,14 @@ public:
 	int xLim;
 	int yLim;
 	
+	int xWump; //wumpus position if confirmed
+	int yWump;
+	
+	multimap<int, int> safe; //basic maps
+	multimap<int, int> explore;
+	multimap<int, int> pits;
+	multimap<int, int> unknownPit;
+	multimap<int, int> unknownWump;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
