@@ -62,6 +62,7 @@ public:
 	
 	multimap<int, int> safe; //basic maps
 	multimap<int, int> explore;
+	multimap<int, int> testPos;
 	multimap<int, int> pits;
 	multimap<int, int> unknownPit;
 	multimap<int, int> unknownWump;
