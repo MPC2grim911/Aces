@@ -104,19 +104,38 @@ Agent::Action MyAI::getAction
 			
 			
 			if(stench && breeze){ //work on this
-			
-				//unknownpit check+add function
-				addOnly(unknownWump, testPos); 
-				//check unknown wumpus with known& unknown pits
+				
+				if(unknownPit.size() == 0)
+					addOnly(unknownPit, testPos);
+				else{
+					//self checking function: if overlays, take out position and add to pit list
+				}
+				
+				if(unknownWump.size() == 0)
+					addOnly(unknownWump, testPos);
+				else{
+					//self checking function: if overlays, update wumpus
+				}
+				
+				//check unknown wumpus with known& unknown pits: 
+					//if overlays, take out position from both unknown lists and add to explore list
 			
 			}
 			else if(stench){ //working on this
-				addOnly(unknownWump, testPos);
+				if(unknownWump.size() == 0)
+					addOnly(unknownWump, testPos);
+				else{
+					//self checking function
+				}
+				
 				//check unknown wumpus with known & unknown pits
 			}
 			else if(breeze){ //working on this
-				
-				//unknownpit check+add function
+				if(unknownPit.size() == 0)
+					addOnly(unknownPit, testPos);
+				else{
+					//self checking function
+				}
 				//check unknown pits with unknown wumpus
 			}
 			
@@ -174,7 +193,7 @@ Agent::Action MyAI::getAction
 			}
 			if(dir == 3){
 				yPos = 0;
-				dir = 4;
+				dir = 0;
 			}
 			return TURN_LEFT;
 		}
