@@ -229,7 +229,7 @@ Agent::Action MyAI::getAction
 				for(itr = testPos.begin(); itr != testPos.end(); itr++){
 					auto itrE = explore.find(itr->first);
 					
-					if(itrE == testPos.end()){
+					if(itrE == explore.end()){
 						explore.insert(pair<int, int> (itr->first, itr->second));
 					}
 					else{
