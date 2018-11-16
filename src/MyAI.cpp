@@ -95,23 +95,12 @@ Agent::Action MyAI::getAction
 
 		if ((moves > 1) &&stench || breeze) //revise
 		{
-			checkSafe(xPos, yPos, safe);
+			checkSafe(xPos, yPos, safe); //add current positon to safe list
+			exShorten(xPos, yPos, explore);//remove position from explore list
+			
+			surTiles(xPos, yPos, xLim, yLim, safe, testPos); //get surrounding unknowns
 			
 			map<int, int>::iterator it;
-			
-			if(explore.count(xPos) == 1){ //remove tile from explore list
-				auto exD = explore.find(xPos);
-				if(exD != explore.end() && exD->second == yPos)
-					explore.erase(xPos);
-			}
-			else{
-				auto const& exD = explore.equal_range(xPos);
-				for(it = exD.first; it != exD.second; it++)
-					if(it->second == yPos)
-						explore.erase(it);
-			}
-			
-			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
 			
 			if(stench){ //working on this - Murphy
 			
@@ -185,21 +174,8 @@ Agent::Action MyAI::getAction
 			
 			map<int, int>::iterator itr;
 			
-			if (moves != 0){			//take position out of explore list
-				if(explore.count(xPos == 1){
-					auto exDel = explore.find(xPos);
-					if(exDel != explore.end())
-						if(exDel-> second == yPos)
-							explore.erase(xPos);
-				}
-				else{
-					auto const& exDel = explore.equal_range(xPos);
-					for(itr = exDel.first; itr != exDel.second; itr++){
-						if(itr->second == yPos)
-							explore.erase(itr);
-					}
-				}
-			}
+			if (moves != 0)			//take position out of explore list
+				exShorten(xPos, yPos, explore);
 			
 			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
 			
@@ -254,6 +230,25 @@ void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position int
 		if(chkS != s.end()){
 			if(chkS->second != y)
 				s.insert(pair<int, int> (x, y));
+		}
+	}
+	return;
+}
+
+void MyAI::exShorten(int x, int y, multimap<int, int> &e){ //takes position out of the explore list
+	if(e.count(x == 1){
+		auto exDel = e.find(x);
+		if(exDel != e.end())
+			if(exDel-> second == y)
+				e.erase(x);
+	}
+	else{
+		auto const& exDel = e.equal_range(x);
+		
+		map<int, int>::iterator it;
+		for(it = exDel.first; it != exDel.second; it++){
+			if(it->second == y)
+				e.erase(it);
 		}
 	}
 	return;
