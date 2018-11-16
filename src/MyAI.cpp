@@ -93,7 +93,7 @@ Agent::Action MyAI::getAction
 			return CLIMB;
 		}
 
-		if ((moves > 1) &&stench || breeze) //revise
+		if ((moves > 1) || stench || breeze) //revise
 		{
 			checkSafe(xPos, yPos, safe); //add current positon to safe list
 			exShorten(xPos, yPos, explore);//remove position from explore list
@@ -102,11 +102,22 @@ Agent::Action MyAI::getAction
 			
 			map<int, int>::iterator it;
 			
-			if(stench){ //working on this - Murphy
+			
+			if(stench && breeze){ //work on this
+			
+				//unknownpit check+add function
+				addOnly(unknownWump, testPos); 
+				//check unknown wumpus with known& unknown pits
 			
 			}
-			if(breeze){ //working on this - Murphy
-			
+			else if(stench){ //working on this
+				addOnly(unknownWump, testPos);
+				//check unknown wumpus with known & unknown pits
+			}
+			else if(breeze){ //working on this
+				
+				//unknownpit check+add function
+				//check unknown pits with unknown wumpus
 			}
 			
 			if(explore.size == 0){
@@ -179,22 +190,7 @@ Agent::Action MyAI::getAction
 			
 			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
 			
-			if(explore.size() == 0){	//add test list to explore list
-				explore.insert(testPos.begin(), testPos.end());
-			}
-			else{
-				for(itr = testPos.begin(); itr != testPos.end(); itr++){
-					auto itrE = explore.find(itr->first);
-					
-					if(itrE == explore.end()){
-						explore.insert(pair<int, int> (itr->first, itr->second));
-					}
-					else{
-						if(itrE->second == itr->second)
-							explore.insert(pair<int, int>(itr->first, itr->second));
-					}
-				}
-			}
+			addOnly(explore, testPos);//add test list to explore list
 			
 			testPos.clear();
 			
@@ -278,6 +274,27 @@ void MyAI::surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multima
 	return;
 }
 
+void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){ //unknown surroundings to specified list
+
+	if(m.size() == 0){	
+		m.insert(t.begin(), t.end());
+	}
+	else{
+	 	map <int, int>::iterator itA;
+		for(itA = t.begin(); itA != t.end(); itA++){
+			auto itr = m.find(itA->first);
+					
+			if(itr == m.end()){
+				m.insert(pair<int, int> (itA->first, itA->second));
+			}
+			else{
+				if(itr->second == itA->second)
+					m.insert(pair<int, int>(itA->first, itA->second));
+			}
+		}
+	}
+	return;
+}
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================
