@@ -95,11 +95,7 @@ Agent::Action MyAI::getAction
 
 		if ((moves > 1) &&stench || breeze) //revise
 		{
-			auto chkS = safe.find(xPos); //insert new safe position into list
-			if(chkS != safe.end()){
-				if(chkS->second != yPos)
-					safe.insert(pair<int, int> (xPos, yPos));
-			}
+			checkSafe(xPos, yPos, safe);
 			
 			map<int, int>::iterator it;
 			
@@ -115,6 +111,7 @@ Agent::Action MyAI::getAction
 						explore.erase(it);
 			}
 			
+			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
 			
 			if(stench){ //working on this - Murphy
 			
@@ -184,7 +181,7 @@ Agent::Action MyAI::getAction
 
 		if (!stench && !breeze)
 		{
-			safe.insert(pair<int, int>(xPos, yPos));//add to save list
+			checkSafe(xPos, yPos, safe);//add to save list
 			
 			map<int, int>::iterator itr;
 			
@@ -204,23 +201,7 @@ Agent::Action MyAI::getAction
 				}
 			}
 			
-			if(yPos != yLim)		//get surrounding tiles
-				testPos.insert(pair<int, int>(xPos, (yPos + 1)));
-			if(yPos != 0)
-				testPos.insert(pair<int, int>(xPos, (yPos - 1)));
-			if(xPos != xLim)
-				testPos.insert(pair<int, int>((xPos + 1), yPos));
-			if(xPos != 0)
-				testPos.insert(pair<int, int>((xPos - 1), yPos));
-				
-			for(itr = safe.begin(); itr != safe.end();itr++){//take out test list from safe list
-				auto itrS = testPos.find(itr->first);
-				
-				if(itrS != testPos.end()){
-					if(itrS->second == itr->second)
-						testPos.erase(itrS);
-				}
-			}
+			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
 			
 			if(explore.size() == 0){	//add test list to explore list
 				explore.insert(testPos.begin(), testPos.end());
@@ -265,7 +246,42 @@ Agent::Action MyAI::getAction
 // ======================================================================
 // YOUR CODE BEGINS
 // ======================================================================
+void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position into safe list
+	if(s.size() == 0)
+		s.insert(pair<int, int> (x, y));
+	else{
+		auto chkS = s.find(x); 
+		if(chkS != s.end()){
+			if(chkS->second != y)
+				s.insert(pair<int, int> (x, y));
+		}
+	}
+	return;
+}
 
+void MyAI::surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multimap<int, int> &t){
+	
+	if(y != yL)		//get surrounding tiles
+		t.insert(pair<int, int>(x, (y + 1)));
+	if(y != 0)
+		t.insert(pair<int, int>(x, (y - 1)));
+	if(x != xL)
+		t.insert(pair<int, int>((x + 1), y));
+	if(x != 0)
+		t.insert(pair<int, int>((x - 1), y));
+				
+	map <int, int>::iterator surIt;
+	for(surIt = s.begin(); surIT != s.end(); surIt++){//take out test list from safe list
+		auto itrS = t.find(surIt->first);
+				
+		if(itrS != t.end()){
+			if(itrS->second == surIt->second)
+				t.erase(itrS);
+		}
+	}
+	
+	return;
+}
 
 // ======================================================================
 // YOUR CODE ENDS
