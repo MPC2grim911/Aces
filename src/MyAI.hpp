@@ -66,6 +66,10 @@ public:
 	multimap<int, int> pits;
 	multimap<int, int> unknownPit;
 	multimap<int, int> unknownWump;
+	
+	//functions to shorten code
+	void surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multimap<int, int> &t); //gets list of surrounding unknown tiles
+	
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
