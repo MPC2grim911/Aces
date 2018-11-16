@@ -93,19 +93,62 @@ Agent::Action MyAI::getAction
 			return CLIMB;
 		}
 
-		if ((moves > 1) || stench || breeze) //revise
+		if ((moves > 1) &&stench || breeze) //revise
 		{
-			goBack = true;
-			if(dir == 0) //180 degrees turn
-				dir = 2;
-			if(dir == 1)
-				dir = 3;
-			if(dir == 2)
-				dir = 0;
-			if(dir == 3)
-				dir = 1;
-			retrace.push(TURN_LEFT);
-			return TURN_LEFT;
+			auto chkS = safe.find(xPos); //insert new safe position into list
+			if(chkS != safe.end()){
+				if(chkS->second != yPos)
+					safe.insert(pair<int, int> (xPos, yPos));
+			}
+			
+			map<int, int>::iterator it;
+			
+			if(explore.count(xPos) == 1){ //remove tile from explore list
+				auto exD = explore.find(xPos);
+				if(exD != explore.end() && exD->second == yPos)
+					explore.erase(xPos);
+			}
+			else{
+				auto const& exD = explore.equal_range(xPos);
+				for(it = exD.first; it != exD.second; it++)
+					if(it->second == yPos)
+						explore.erase(it);
+			}
+			
+			
+			if(stench){ //working on this - Murphy
+			
+			}
+			if(breeze){ //working on this - Murphy
+			
+			}
+			
+			if(explore.size == 0){
+				goBack = true;
+				retrace.push(TURN_LEFT);
+				return TURN_LEFT;
+			}
+			else{
+				
+				//need to check explore list for nearby tiles to go to
+				
+				
+				//else
+				if(dir == 0) //180 degrees turn
+					dir = 2;
+				if(dir == 1)
+					dir = 3;
+				if(dir == 2)
+					dir = 0;
+				if(dir == 3)
+					dir = 1;
+			
+				
+				//need to have it turn 180 degrees and return forward
+				//I am stuck trying to figure out this part - Murphy
+			
+			
+			}
 		}
 
 		if (bump)
@@ -141,6 +184,63 @@ Agent::Action MyAI::getAction
 
 		if (!stench && !breeze)
 		{
+			safe.insert(pair<int, int>(xPos, yPos));//add to save list
+			
+			map<int, int>::iterator itr;
+			
+			if (moves != 0){			//take position out of explore list
+				if(explore.count(xPos == 1){
+					auto exDel = explore.find(xPos);
+					if(exDel != explore.end())
+						if(exDel-> second == yPos)
+							explore.erase(xPos);
+				}
+				else{
+					auto const& exDel = explore.equal_range(xPos);
+					for(itr = exDel.first; itr != exDel.second; itr++){
+						if(itr->second == yPos)
+							explore.erase(itr);
+					}
+				}
+			}
+			
+			if(yPos != yLim)		//get surrounding tiles
+				testPos.insert(pair<int, int>(xPos, (yPos + 1)));
+			if(yPos != 0)
+				testPos.insert(pair<int, int>(xPos, (yPos - 1)));
+			if(xPos != xLim)
+				testPos.insert(pair<int, int>((xPos + 1), yPos));
+			if(xPos != 0)
+				testPos.insert(pair<int, int>((xPos - 1), yPos));
+				
+			for(itr = safe.begin(); itr != safe.end();itr++){//take out test list from safe list
+				auto itrS = testPos.find(itr->first);
+				
+				if(itrS != testPos.end()){
+					if(itrS->second == itr->second)
+						testPos.erase(itrS);
+				}
+			}
+			
+			if(explore.size() == 0){	//add test list to explore list
+				explore.insert(testPos.begin(), testPos.end());
+			}
+			else{
+				for(itr = testPos.begin(); itr != testPos.end(); itr++){
+					auto itrE = explore.find(itr->first);
+					
+					if(itrE == testPos.end()){
+						explore.insert(pair<int, int> (itr->first, itr->second));
+					}
+					else{
+						if(itrE->second == itr->second)
+							explore.insert(pair<int, int>(itr->first, itr->second));
+					}
+				}
+			}
+			
+			testPos.clear();
+			
 			retrace.push(FORWARD);
 			moves++;
 			if(dir == 0)//player position changes
