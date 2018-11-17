@@ -47,6 +47,7 @@ public:
 	stack <Action> retrace;
 	int moves;
 	bool goBack;
+	bool arrowShot;
 	
 	int xPos; //player position
 	int yPos;

@@ -21,6 +21,7 @@
 #include <iostream>
 #include <stack>
 #include <map>
+#include <iterator>
 
 using namespace std;
 
@@ -32,6 +33,7 @@ MyAI::MyAI() : Agent()
 	// ======================================================================
 	goBack = false;
 	moves = 0;
+	arrowShot = false;
 	
 	xPos = 0; //player initial position, change if needed
 	yPos = 0;
@@ -86,14 +88,35 @@ Agent::Action MyAI::getAction
 			retrace.push(TURN_LEFT);
 			return (GRAB);
 		}
+
+		if (moves == 0) //moved this here for clarity
+		{
+			if (breeze)
+			{
+				return CLIMB;
+			}
+			else if (stench)
+			{
+				moves++;
+				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
+				return SHOOT;
+			}
+		}
 		
 		if(scream)
 			wumpus = true;
+
+		if (arrowShot && !wumpus && moves == 1) //we know where the wumpus is if we shoot arrow on first turn and it does not die
+		{
+			xWump = 1;
+			yWump = 2;
+		}
 		
 		if (bump)
 		{
 			retrace.push(TURN_RIGHT);
 			moves++;
+
 			if(dir == 0){ 		
 				xPos -= 1; //to cancel out the FORWARD move position change in navigation
 				if(!xWall){//finds max dimensions of the maze
@@ -123,7 +146,7 @@ Agent::Action MyAI::getAction
 
 		//cout << xPos << ", " << yPos << endl << dir << endl;
 
-		if (moves == 0) //first block only
+		/*if (moves == 0) //first block only
 		{
 			if(stench){
 				if(!wumpus)
@@ -158,109 +181,112 @@ Agent::Action MyAI::getAction
 			return FORWARD;
 			
 		}
-		else{
-			if (stench || breeze) //if sense a stench or breeze
-			{
-				checkSafe(xPos, yPos, safe); //add current positon to safe list
-				exShorten(xPos, yPos, explore);//remove position from explore list
-			
-				surTiles(xPos, yPos, xLim, yLim, safe, testPos); //get surrounding unknowns
-			
-				if(stench && breeze){ //if there is both a stench and breeze
+		*/
 
-					compSelf(unknownWump, wump, testPos);//self checking function: if overlays, update wumpus
-					compSelf(unknownPit, pit, testPos);//self checking function: pit version 
-					exDelSB(explore, testPos); //takes out surrounding area from explore list
-				}
-				else if(stench){ //if there is only a stench
-				
-					compSelf(unknownWump, wump, testPos);
-					exDelSB(explore, testPos);
-					
-					wCheckP(explore, unknownWump, unknownPit, pit, testPos);//check unknown wumpus with known & unknown pits
-				}
-				else if(breeze){ //if there is only a breeze
-				
-					compSelf(unknownPit, pit, testPos);
-					exDelSB(explore, testPos);
-					
-					if(!wumpus)//if wumpus is not dead yet
-						pCheckW(explore,  unknownPit, unknownWump, testPos);//check unknown pits with unknown wumpus
-				}
-				
-				testPos.clear();
-				
-				if(!wumpus){//if wumpus is not dead
-					if(unknownWump.size() == 1 || wump.size() == 1){ //if unknownWump list or wump list is size 1
-						wumpus = true;
-						map<int, int>::iterator it;
-						
-						if(wump.size() == 0) {		//getting wumpus location
-							it = unknownWump.begin();
-							xWump = it->first;
-							yWump = it->second;
-						}
-						else{
-							it = wump.begin();
-							xWump = it->first;
-							yWump = it->second;
-						}
+		if (stench || breeze) //if sense a stench or breeze
+		{
+			checkSafe(xPos, yPos, safe); //add current positon to safe list
+			exShorten(xPos, yPos, explore);//remove position from explore list
+
+			surTiles(xPos, yPos, xLim, yLim, safe, testPos); //get surrounding unknowns
+
+			if (stench && breeze) { //if there is both a stench and breeze
+
+				compSelf(unknownWump, wump, testPos);//self checking function: if overlays, update wumpus
+				compSelf(unknownPit, pits, testPos);//self checking function: pits version 
+				exDelSB(explore, testPos); //takes out surrounding area from explore list
+			}
+			else if (stench) { //if there is only a stench
+
+				compSelf(unknownWump, wump, testPos);
+				exDelSB(explore, testPos);
+
+				wCheckP(explore, unknownWump, unknownPit, pits, testPos);//check unknown wumpus with known & unknown pits
+			}
+			else if (breeze) { //if there is only a breeze
+
+				compSelf(unknownPit, pits, testPos);
+				exDelSB(explore, testPos);
+
+				if (!wumpus)//if wumpus is not dead yet
+					pCheckW(explore, unknownPit, unknownWump, testPos);//check unknown pits with unknown wumpus
+			}
+
+			testPos.clear();
+
+			if (!wumpus) {//if wumpus is not dead
+				if (unknownWump.size() == 1 || wump.size() == 1) { //if unknownWump list or wump list is size 1
+					wumpus = true;
+					map<int, int>::iterator it;
+
+					if (wump.size() == 0) {		//getting wumpus location
+						it = unknownWump.begin();
+						xWump = it->first;
+						yWump = it->second;
+					}
+					else {
+						it = wump.begin();
+						xWump = it->first;
+						yWump = it->second;
 					}
 				}
-				
-				
-				if(explore.size == 0){ 	//how the agent should move
-					goBack = true;
-					retrace.push(TURN_LEFT);
-					return TURN_LEFT;
-				}
-				else{
-
-					//need to check explore list for nearby tiles to go to
-
-
-					//else
-					if(dir == 0) //180 degrees turn
-						dir = 2;
-					if(dir == 1)
-						dir = 3;
-					if(dir == 2)
-						dir = 0;
-					if(dir == 3)
-						dir = 1;
-
-
-					//need to have it turn 180 degrees and return forward
-					//I am stuck trying to figure out this part - Murphy
-
-
-				}
 			}
-			else{ //for safe tiles
-				checkSafe(xPos, yPos, safe);//add to save list
 
-				if (moves != 0)			//take position out of explore list
-					exShorten(xPos, yPos, explore);
 
-				surTiles(xPos, yPos, xLim, yLim, safe, testPos);
+			if (explore.size() == 0) { 	//how the agent should move
+				goBack = true;
+				retrace.push(TURN_LEFT);
+				return TURN_LEFT;
+			}
+			else {
 
-				addOnly(explore, testPos);//add test list to explore list
+				//need to check explore list for nearby tiles to go to
 
-				testPos.clear();
 
-				retrace.push(FORWARD);
-				moves++;
-				if(dir == 0)//player position changes
-					xPos += 1;
-				if(dir == 1)
-					yPos += 1;
-				if(dir == 2)
-					xPos -= 1;
-				if(dir == 3)
-					yPos -= 1;
-				return FORWARD;
+				//else
+				if (dir == 0) //180 degrees turn
+					dir = 2;
+				if (dir == 1)
+					dir = 3;
+				if (dir == 2)
+					dir = 0;
+				if (dir == 3)
+					dir = 1;
+
+
+				//need to have it turn 180 degrees and return forward
+				//I am stuck trying to figure out this part - Murphy
+
+
 			}
 		}
+		else { //for safe tiles
+			checkSafe(xPos, yPos, safe);//add to save list
+
+			if (moves != 0)			//take position out of explore list
+				exShorten(xPos, yPos, explore);
+
+			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
+
+			addOnly(explore, testPos);//add test list to explore list
+
+			testPos.clear();
+
+			retrace.push(FORWARD);
+			moves++;
+			if (dir == 0)//player position changes
+				xPos += 1;
+			if (dir == 1)
+				yPos += 1;
+			if (dir == 2)
+				xPos -= 1;
+			if (dir == 3)
+				yPos -= 1;
+			return FORWARD;
+		}
+
+
+		
 	}
 	
 	// ======================================================================
@@ -316,8 +342,8 @@ void MyAI::surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multima
 	if(x != 0)
 		t.insert(pair<int, int>((x - 1), y));
 				
-	map <int, int>::iterator surIt;
-	for(surIt = s.begin(); surIT != s.end(); surIt++){//take out test list from safe list
+	typename map <int, int>::iterator surIt;
+	for(surIt = s.begin(); surIt != s.end(); surIt++){//take out test list from safe list
 		auto itrS = t.find(surIt->first);
 				
 		if(itrS != t.end()){
