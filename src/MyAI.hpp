@@ -59,6 +59,7 @@ public:
 	
 	int xWump; //wumpus position if confirmed
 	int yWump;
+	bool wumpus;
 	
 	multimap<int, int> safe; //basic maps
 	multimap<int, int> explore;
@@ -66,12 +67,18 @@ public:
 	multimap<int, int> pits;
 	multimap<int, int> unknownPit;
 	multimap<int, int> unknownWump;
+	multimap<int, int> wump;
 	
 	//functions to shorten code
 	void checkSafe(int x, int y, multimap<int, int> &s); //checks and adds new tile to safe list
 	void exShorten(int x, int y, multimap<int, int> &e); //takes out current tile from explore list
 	void surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multimap<int, int> &t); //gets list of surrounding unknown tiles
 	void addOnly(multimap<int, int> &m, multimap<int, int> &t); //adds new tiles to an existing list
+	void compSelf(multimap<int, int> &m, multimap<int, int> &m2, multimap<int, int> &t); //compares for overlays and adds to known list
+	void exDelSB(multimap<int, int> &e, multimap<int, int> &t); //takes out surrounding tiles from explore if there is breadth or stench
+	void wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> &t); //check if testPos of wump conflicts with any pit lists, take out from wump and pit and add to explore accordingly
+	void pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> &t); //check if unknown pits conflict with wump list, take out from wump and pit and add to explore accordingly
+	
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
