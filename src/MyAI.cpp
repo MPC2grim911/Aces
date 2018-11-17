@@ -188,6 +188,8 @@ Agent::Action MyAI::getAction
 						pCheckW(explore,  unknownPit, unknownWump, testPos);//check unknown pits with unknown wumpus
 				}
 				
+				testPos.clear();
+				
 				if(!wumpus){//if wumpus is not dead
 					if(unknownWump.size() == 1 || wump.size() == 1){ //if unknownWump list or wump list is size 1
 						wumpus = true;
