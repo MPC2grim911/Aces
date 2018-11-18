@@ -73,30 +73,31 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
-	if (turnAround && turnCount < 2) 
-	{
-		if (turnCount == 1)
-		{
-			turnCount == 0;
-			turnAround = false;
-			retrace.push(FORWARD);
-			return FORWARD;
-		}
-
-		turnCount++;
-		retrace.push(TURN_LEFT);
-		retrace.push(TURN_LEFT);
-		return TURN_LEFT;
-	}
 	
 	if(oneMv){ //if the explore point is in immediate area, then don't back out
 	
 	}
 	
-	if(target){ //this is where the code to get to the destination goes to
-	
-	//Andre this is your section
-	
+	if(target){ //setup target route
+		if (turnAround) //turn around and take a step back
+		{
+			if (turnCount == 1)
+			{
+				turnCount == 0;
+				turnAround = false;
+				retrace.push(FORWARD);
+				return FORWARD;
+			}
+
+			turnCount++;
+			retrace.push(TURN_LEFT);
+			retrace.push(TURN_LEFT);
+			return TURN_LEFT;
+		}
+		
+		//find safe route to xDest and yDest 
+		 
+		//Andre this is your section
 	}
 	
 	
@@ -267,18 +268,91 @@ Agent::Action MyAI::getAction
 				//need to check explore list for nearby tiles to go to
 
 				//if find explore tile next to us, then go to it
-
-				
-				if (/*Your boolean here*/)
+				bool next = false;
+				target = getTarget(xPos, yPos, explore, xDest, yDest, next); //gets target
+						
+				if (next) //if destination is right next to current tile
 				{
-					//check safe multimap for adjacent tile to xdest ydest
-					//
-					//exploreTile is a queue to put all the actions you need to get to the destination
-					//exploreTile.push(//ACTION HERE);
+					oneMv = true;
+					if(xPos == xDest){ //if destination is above or below current tile
+						if((yDest - yPos) == 1){
+							if(dir == 0){
+								dir = 1;
+								return TURN_LEFT;
+							}
+							if(dir == 1){
+								oneMv = false;
+								return FORWARD;
+							}
+							if(dir == 2){
+								dir = 1;
+								return TURN_RIGHT;
+							}
+							if(dir == 3){
+								hlfTurn = true;
+								dir = 1;
+								return TURN_RIGHT;
+							}
+						}
+						if(dir == 0){
+							dir = 3;
+							return TURN_RIGHT;
+						}
+						if(dir == 1){
+							hlfTurn = true;
+							dir = 3;
+							return TURN_RIGHT;
+						}
+						if(dir == 2){
+							dir = 3;
+							return TURN_LEFT;
+						}
+						if(dir == 3){
+							oneMv = false;
+							return FORWARD;
+						}
+					}
+					if(yPos == yDest){ //if destination is to the left or right of tile
+						if((xDest - xPos) == 1){
+							if(dir == 0){
+								oneMv = false;
+								return FORWARD;
+							}
+							if(dir == 1){
+								dir = 0;
+								return TURN_RIGHT;
+							}
+							if(dir == 2){
+								hlfTurn = true;
+								dir = 0;
+								return TURN_RIGHT;
+							}
+							if(dir == 3){
+								dir = 0;
+								return TURN_LEFT;
+							}
+						}
+						if(dir == 0){
+							hlfTurn = true;
+							dir = 2;
+							return TURN_RIGHT;
+						}
+						if(dir == 1){
+							dir = 2;
+							return TURN_LEFT;
+						}
+						if(dir == 2){
+							oneMv = false;
+							return FORWARD;
+						}
+						if(dir == 3){
+							dir = 2;
+							return TURN_RIGHT;
+						}
+					}
 				}
-
-
-				//else
+				
+				//else, if the destination is no where near take a step back and search for target 
 				if (dir == 0){ //180 degrees turn
 					dir = 2;
 					xPos -= 1;
