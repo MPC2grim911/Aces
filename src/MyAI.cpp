@@ -50,6 +50,12 @@ MyAI::MyAI() : Agent()
 	int yWump = -1;
 	wumpus = false;
 	
+	target = false;
+	oneMv = false;
+	hlfTurn = false;
+	xDest = -1;
+	yDest = -1;
+	
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -67,7 +73,7 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
-	if (turnAround && turnCount < 2)
+	if (turnAround && turnCount < 2) 
 	{
 		if (turnCount == 1)
 		{
@@ -82,7 +88,18 @@ Agent::Action MyAI::getAction
 		retrace.push(TURN_LEFT);
 		return TURN_LEFT;
 	}
-
+	
+	if(oneMv){ //if the explore point is in immediate area, then don't back out
+	
+	}
+	
+	if(target){ //this is where the code to get to the destination goes to
+	
+	//Andre this is your section
+	
+	}
+	
+	
 
 	if (goBack)
 	{
@@ -251,8 +268,7 @@ Agent::Action MyAI::getAction
 
 				//if find explore tile next to us, then go to it
 
-				int xDestination;
-				int yDestination;
+				
 				if (/*Your boolean here*/)
 				{
 					//check safe multimap for adjacent tile to xdest ydest
