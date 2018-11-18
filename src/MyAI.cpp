@@ -55,6 +55,7 @@ MyAI::MyAI() : Agent()
 	hlfTurn = false;
 	xDest = -1;
 	yDest = -1;
+	startQ = false;
 	
 	// ======================================================================
 	// YOUR CODE ENDS
@@ -75,7 +76,7 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	
 	if(oneMv){ //if the explore point is in immediate area, then don't back out
-	
+		
 	}
 	
 	if(target){ //setup target route
@@ -98,6 +99,7 @@ Agent::Action MyAI::getAction
 		//find safe route to xDest and yDest 
 		 
 		//Andre this is your section
+		goToTarget(xPos, yPos, xDest, yDest, safe, exploreTile, startQ);
 	}
 	
 	
@@ -628,16 +630,21 @@ bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool&
 		
 		if(d < dist){
 			xD = itT->first;
-			yD = itT->first;
+			yD = itT->first; // shouldn't this be itT->second;
 			dist = d;
 		}
 	}
 	
 	if(dist == 1){
-		n = true;
+		next = true; //i changed this to next, it was n before
 		return false;
 	}
 	return true;
+}
+
+void MyAI::goToTarget(int x, int y, int xDes, int yDes, multimap<int, int> safeMap, queue<Action> &result, bool start)
+{
+
 }
 
 // ======================================================================
