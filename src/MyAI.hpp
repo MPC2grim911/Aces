@@ -24,6 +24,7 @@
 #include <iostream>
 #include <stack>
 #include <map>
+#include <queue>
 
 using namespace std;
 
@@ -45,6 +46,7 @@ public:
 	// YOUR CODE BEGINS
 	// ======================================================================
 	stack <Action> retrace;
+	queue <Action> exploreTile;
 	int moves;
 	bool goBack;
 	bool arrowShot;

@@ -107,27 +107,15 @@ Agent::Action MyAI::getAction
 			return (GRAB);
 		}
 
-		if (moves == 0) //moved this here for clarity
-		{
-			if (breeze)
-			{
-				return CLIMB;
-			}
-			else if (stench)
-			{
-				moves++;
-				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
-				return SHOOT;
-			}
-		}
+
 		
 		if(scream)
 			wumpus = true;
 
 		if (arrowShot && !wumpus && moves == 1) //we know where the wumpus is if we shoot arrow on first turn and it does not die
 		{
-			xWump = 1;
-			yWump = 2;
+			xWump = 0;
+			yWump = 1;
 		}
 		
 		if (bump)
@@ -166,13 +154,15 @@ Agent::Action MyAI::getAction
 
 		if (moves == 0) //first block only
 		{
-			if(stench){
-				if(!wumpus)
-					return SHOOT;
+			if (breeze)
+			{
 				return CLIMB;
 			}
-			if(breeze){
-				return CLIMB;
+			else if (stench)
+			{
+				moves++;
+				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
+				return SHOOT;
 			}
 			
 			checkSafe(xPos, yPos, safe);//add to save list
@@ -260,6 +250,18 @@ Agent::Action MyAI::getAction
 				//need to check explore list for nearby tiles to go to
 
 				//if find explore tile next to us, then go to it
+
+				int xDestination;
+				int yDestination;
+				if (/*Your boolean here*/)
+				{
+					//check safe multimap for adjacent tile to xdest ydest
+					//
+					//exploreTile is a queue to put all the actions you need to get to the destination
+					//exploreTile.push(//ACTION HERE);
+				}
+
+
 				//else
 				if (dir == 0){ //180 degrees turn
 					dir = 2;
