@@ -64,6 +64,10 @@ public:
 	int yWump;
 	bool wumpus;
 	
+	bool target; //variables to determine how to get from point A to B
+	bool oneMv;
+	bool hlfTurn;
+	
 	multimap<int, int> safe; //basic maps
 	multimap<int, int> explore;
 	multimap<int, int> testPos;
@@ -82,6 +86,7 @@ public:
 	void wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> &t); //check if testPos of wump conflicts with any pit lists, take out from wump and pit and add to explore accordingly
 	void pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> &t); //check if unknown pits conflict with wump list, take out from wump and pit and add to explore accordingly
 	
+	bool getTarget(int x, int y, multimap<int, int> e, int &xD, int &yD, bool &n); //bool to get to target destination
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
