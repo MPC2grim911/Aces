@@ -71,12 +71,15 @@ Agent::Action MyAI::getAction
 	{
 		if (turnCount == 1)
 		{
-			turnCount++;
+			turnCount == 0;
 			turnAround = false;
+			retrace.push(FORWARD);
 			return FORWARD;
 		}
 
 		turnCount++;
+		retrace.push(TURN_LEFT);
+		retrace.push(TURN_LEFT);
 		return TURN_LEFT;
 	}
 
@@ -115,6 +118,29 @@ Agent::Action MyAI::getAction
 				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
 				return SHOOT;
 			}
+
+			checkSafe(xPos, yPos, safe);//add to save list
+
+			if (moves != 0)			//take position out of explore list
+				exShorten(xPos, yPos, explore);
+
+			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
+
+			addOnly(explore, testPos);//add test list to explore list
+
+			testPos.clear();
+
+			retrace.push(FORWARD);
+			moves++;
+			if (dir == 0)//player position changes
+				xPos += 1;
+			if (dir == 1)
+				yPos += 1;
+			if (dir == 2)
+				xPos -= 1;
+			if (dir == 3)
+				yPos -= 1;
+			return FORWARD;
 		}
 		
 		if(scream)
@@ -160,42 +186,7 @@ Agent::Action MyAI::getAction
 
 		//cout << xPos << ", " << yPos << endl << dir << endl;
 
-		/*if (moves == 0) //first block only
-		{
-			if(stench){
-				if(!wumpus)
-					return SHOOT;
-				return CLIMB;
-			}
-			if(breeze){
-				return CLIMB;
-			}
-			
-			checkSafe(xPos, yPos, safe);//add to save list
-			
-			if (moves != 0)			//take position out of explore list
-				exShorten(xPos, yPos, explore);
-			
-			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
-			
-			addOnly(explore, testPos);//add test list to explore list
-			
-			testPos.clear();
-			
-			retrace.push(FORWARD);
-			moves++;
-			if(dir == 0)//player position changes
-				xPos += 1;
-			if(dir == 1)
-				yPos += 1;
-			if(dir == 2)
-				xPos -= 1;
-			if(dir == 3)
-				yPos -= 1;
-			return FORWARD;
-			
-		}
-		*/
+
 
 		if (stench || breeze) //if sense a stench or breeze
 		{
@@ -440,74 +431,13 @@ void MyAI::exDelSB(multimap<int, int> &e, multimap<int, int> &t){ //takes unknow
 
 //checks unknown wumpus to known and unknown pits and adds to explore
 void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> &t){ 
-	map<int,int>::iterator it;
-	map<int,int>::iterator itr;
-	map<int,int>::iterator i;
-	
-	if(p2.size() != 0){ 	//takes out known pits from wumpus list only
-		for(it = t.begin(); it != t.end(); it++){
-			auto const& wDel = p2.equal_range(it->first);
-		
-			for(itr = wDel.first; itr != wDel.second; itr++){
-				if(itr->second == it->second){
-					auto const& wump = w.equal_range(it->first);
-		
-					for(i = wump.first; i != wump.second; i++){
-						if(i->second == it->second){
-							w.erase(i);
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	//takes out overlapping points from wumpus and unknown pit list and adds to explore list
-	for(it = t.begin(); it != t.end(); it++){
-		auto const& wComp = p.equal_range(it->first);
-		
-		for(itr = wComp.first; itr != wComp.second; itr++){
-			if(itr->second == it->second){
-				p.erase(itr);
-				e.insert(pair<int, int>(it->first, it->second));
-				
-				auto const& wump = w.equal_range(it->first);
-				for(i = wump.first; i != wump.second; i++){
-					if(i->second == it->second){
-						w.erase(i);
-					}
-				}
-			}
-		}
-	}
-	
+	//working on this - Murphy
 	return;
 }
 
 //checks unknown pits to unknown wumpus and adds to explore
 void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> &t){ 
-	map<int,int>::iterator it;
-	map<int,int>::iterator itr;
-	map<int,int>::iterator i;
-	
-	for(it = t.begin(); it != t.end(); it++){
-		auto const& pComp = w.equal_range(it->first);
-		
-		for(itr = pComp.first; itr != pComp.second; itr++){
-			if(itr->second == it->second){
-				w.erase(itr);
-				e.insert(pair<int, int>(it->first, it->second));
-				
-				auto const& pit = p.equal_range(it->first);
-				for(i = pit.first; i != pit.second; i++){
-					if(i->second == it->second){
-						p.erase(i);
-					}
-				}
-			}
-		}
-	}
-	
+	//working on this - Murphy
 	return;
 }
 
