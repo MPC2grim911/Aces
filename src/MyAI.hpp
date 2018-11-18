@@ -46,6 +46,8 @@ public:
 	stack <Action> retrace;
 	int moves;
 	bool goBack;
+	bool arrowShot;
+	bool wumpusDead;
 	
 	// ======================================================================
 	// YOUR CODE ENDS

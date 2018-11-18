@@ -31,6 +31,8 @@ MyAI::MyAI() : Agent()
 	// ======================================================================
 	goBack = false;
 	moves = 0;
+	arrowShot = false;
+	wumpusDead = false;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -77,11 +79,29 @@ Agent::Action MyAI::getAction
 
 		}
 
-		if (moves == 0 && (stench || breeze))
+		if (moves == 0)
 		{
-			cout << "1st turn" << endl;
-			return CLIMB;
+			if (breeze)
+			{
+				return CLIMB;
+			}
+			else if (stench)
+			{
+				moves++;
+				arrowShot = true;
+				return SHOOT;
+			}
+
+			retrace.push(FORWARD);
+			return FORWARD;
 		}
+
+		if (scream)
+		{
+			wumpusDead = true;
+		}
+
+		if (arrowShot && )
 
 		if ((moves > 1) || stench || breeze)
 		{
