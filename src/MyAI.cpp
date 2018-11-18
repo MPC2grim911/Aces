@@ -438,8 +438,10 @@ void MyAI::exShorten(int x, int y, multimap<int, int> &e){ //takes position out 
 		
 		map<int, int>::iterator it;
 		for(it = exDel.first; it != exDel.second; it++){
-			if(it->second == y)
+			if(it->second == y){
 				e.erase(it);
+				break;
+			}
 		}
 	}
 	return;
@@ -529,8 +531,10 @@ void MyAI::exDelSB(multimap<int, int> &e, multimap<int, int> &t){ //takes unknow
 		
 			map<int, int>::iterator it;
 			for(it = exDel.first; it != exDel.second; it++){
-				if(it->second == itE->second)
+				if(it->second == itE->second){
 					e.erase(it);
+					break;	
+				}
 			}
 		}
 	}
@@ -554,6 +558,7 @@ void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, i
 					for(i = wump.first; i != wump.second; i++){
 						if(i->second == it->second){
 							w.erase(i);
+							break;
 						}
 					}
 				}
@@ -574,6 +579,7 @@ void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, i
 				for(i = wump.first; i != wump.second; i++){
 					if(i->second == it->second){
 						w.erase(i);
+						break;
 					}
 				}
 			}
@@ -601,6 +607,7 @@ void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, i
 				for(i = pit.first; i != pit.second; i++){
 					if(i->second == it->second){
 						p.erase(i);
+						break;
 					}
 				}
 			}
@@ -608,6 +615,29 @@ void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, i
 	}
 	
 	return;
+}
+
+bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool& next){
+	
+	map<int, int>::iterator itT;
+
+	int dist = 1000;
+		
+	for(itT = e.begin(); itT != e.end(); itT++){
+		int d = abs(itT->first - x) + abs(itT->second -y);
+		
+		if(d < dist){
+			xD = itT->first;
+			yD = itT->first;
+			dist = d;
+		}
+	}
+	
+	if(dist == 1){
+		n = true;
+		return false;
+	}
+	return true;
 }
 
 // ======================================================================
