@@ -617,7 +617,7 @@ void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, i
 	return;
 }
 
-bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool& next){
+bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool& n){
 	
 	map<int, int>::iterator itT;
 
