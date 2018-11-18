@@ -69,6 +69,8 @@ public:
 	bool target; //variables to determine how to get from point A to B
 	bool oneMv;
 	bool hlfTurn;
+	int xDest;
+	int yDest;
 	
 	multimap<int, int> safe; //basic maps
 	multimap<int, int> explore;
