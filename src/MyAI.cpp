@@ -170,7 +170,7 @@ Agent::Action MyAI::getAction
 				//cout << "Moved once" << endl;
 				retrace.push(FORWARD);
 				moves++;
-				cout << moves << endl;
+				//cout << moves << endl;
 				return FORWARD;
 
 
@@ -200,7 +200,7 @@ Agent::Action MyAI::getAction
 				//cout << "Moved once" << endl;
 				retrace.push(FORWARD);
 				moves++;
-				cout << moves << endl;
+				//cout << moves << endl;
 				return FORWARD;
 
 
