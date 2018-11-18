@@ -34,6 +34,8 @@ MyAI::MyAI() : Agent()
 	goBack = false;
 	moves = 0;
 	arrowShot = false;
+	turnAround = false;
+	turnCount = 0;
 	
 	xPos = 0; //player initial position, change if needed
 	yPos = 0;
@@ -65,7 +67,19 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
-	
+	if (turnAround && turnCount < 2)
+	{
+		if (turnCount == 1)
+		{
+			turnCount++;
+			turnAround = false;
+			return FORWARD;
+		}
+
+		turnCount++;
+		return TURN_LEFT;
+	}
+
 	if (goBack)
 	{
 		if (!retrace.empty())
@@ -253,7 +267,8 @@ Agent::Action MyAI::getAction
 				if (dir == 3)
 					dir = 1;
 
-
+				turnAround = true;
+				return TURN_LEFT;
 				//need to have it turn 180 degrees and return forward
 				//I am stuck trying to figure out this part - Murphy
 

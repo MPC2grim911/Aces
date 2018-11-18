@@ -48,6 +48,8 @@ public:
 	int moves;
 	bool goBack;
 	bool arrowShot;
+	int turnCount;
+	bool turnAround;
 	
 	int xPos; //player position
 	int yPos;
