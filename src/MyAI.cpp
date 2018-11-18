@@ -630,7 +630,7 @@ bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool&
 		
 		if(d < dist){
 			xD = itT->first;
-			yD = itT->first; // shouldn't this be itT->second;
+			yD = itT->second;
 			dist = d;
 		}
 	}
