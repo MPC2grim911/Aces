@@ -160,7 +160,7 @@ Agent::Action MyAI::getAction
 
 		//cout << xPos << ", " << yPos << endl << dir << endl;
 
-		/*if (moves == 0) //first block only
+		if (moves == 0) //first block only
 		{
 			if(stench){
 				if(!wumpus)
@@ -195,8 +195,7 @@ Agent::Action MyAI::getAction
 			return FORWARD;
 			
 		}
-		*/
-
+		
 		if (stench || breeze) //if sense a stench or breeze
 		{
 			checkSafe(xPos, yPos, safe); //add current positon to safe list
@@ -256,23 +255,27 @@ Agent::Action MyAI::getAction
 
 				//need to check explore list for nearby tiles to go to
 
-
+				//if find explore tile next to us, then go to it
 				//else
-				if (dir == 0) //180 degrees turn
+				if (dir == 0){ //180 degrees turn
 					dir = 2;
-				if (dir == 1)
+					xPos -= 1;
+				}
+				if (dir == 1){
 					dir = 3;
-				if (dir == 2)
+					yPos -= 1;
+				}
+				if (dir == 2){
 					dir = 0;
-				if (dir == 3)
+					xPos += 1;
+				}
+				if (dir == 3){
 					dir = 1;
+					yPos += 1;
+				}
 
 				turnAround = true;
 				return TURN_LEFT;
-				//need to have it turn 180 degrees and return forward
-				//I am stuck trying to figure out this part - Murphy
-
-
 			}
 		}
 		else { //for safe tiles
