@@ -636,7 +636,7 @@ bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool&
 	}
 	
 	if(dist == 1){
-		next = true; //i changed this to next, it was n before
+		n = true;  
 		return false;
 	}
 	return true;
