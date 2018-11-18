@@ -149,7 +149,7 @@ Agent::Action MyAI::getAction
 				}
 				dir = 1; //left turn directions
 			}
-			if(dir == 1){
+			else if(dir == 1){
 				yPos -= 1;
 				if(!yWall){
 					yLim = yPos;
@@ -157,11 +157,11 @@ Agent::Action MyAI::getAction
 				}
 				dir = 2;
 			}
-			if(dir == 2){
+			else if(dir == 2){
 				xPos = 0;
 				dir = 3;
 			}
-			if(dir == 3){
+			else if(dir == 3){
 				yPos = 0;
 				dir = 0;
 			}
@@ -280,15 +280,15 @@ Agent::Action MyAI::getAction
 								dir = 1;
 								return TURN_LEFT;
 							}
-							if(dir == 1){
+							else if(dir == 1){
 								oneMv = false;
 								return FORWARD;
 							}
-							if(dir == 2){
+							else if(dir == 2){
 								dir = 1;
 								return TURN_RIGHT;
 							}
-							if(dir == 3){
+							else if(dir == 3){
 								hlfTurn = true;
 								dir = 1;
 								return TURN_RIGHT;
@@ -298,16 +298,16 @@ Agent::Action MyAI::getAction
 							dir = 3;
 							return TURN_RIGHT;
 						}
-						if(dir == 1){
+						else if(dir == 1){
 							hlfTurn = true;
 							dir = 3;
 							return TURN_RIGHT;
 						}
-						if(dir == 2){
+						else if(dir == 2){
 							dir = 3;
 							return TURN_LEFT;
 						}
-						if(dir == 3){
+						else if(dir == 3){
 							oneMv = false;
 							return FORWARD;
 						}
@@ -318,16 +318,16 @@ Agent::Action MyAI::getAction
 								oneMv = false;
 								return FORWARD;
 							}
-							if(dir == 1){
+							else if(dir == 1){
 								dir = 0;
 								return TURN_RIGHT;
 							}
-							if(dir == 2){
+							else if(dir == 2){
 								hlfTurn = true;
 								dir = 0;
 								return TURN_RIGHT;
 							}
-							if(dir == 3){
+							else if(dir == 3){
 								dir = 0;
 								return TURN_LEFT;
 							}
@@ -337,15 +337,15 @@ Agent::Action MyAI::getAction
 							dir = 2;
 							return TURN_RIGHT;
 						}
-						if(dir == 1){
+						else if(dir == 1){
 							dir = 2;
 							return TURN_LEFT;
 						}
-						if(dir == 2){
+						else if(dir == 2){
 							oneMv = false;
 							return FORWARD;
 						}
-						if(dir == 3){
+						else if(dir == 3){
 							dir = 2;
 							return TURN_RIGHT;
 						}
@@ -357,15 +357,15 @@ Agent::Action MyAI::getAction
 					dir = 2;
 					xPos -= 1;
 				}
-				if (dir == 1){
+				else if (dir == 1){
 					dir = 3;
 					yPos -= 1;
 				}
-				if (dir == 2){
+				else if (dir == 2){
 					dir = 0;
 					xPos += 1;
 				}
-				if (dir == 3){
+				else if (dir == 3){
 					dir = 1;
 					yPos += 1;
 				}
