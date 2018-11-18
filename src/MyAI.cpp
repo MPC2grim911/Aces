@@ -71,14 +71,18 @@ Agent::Action MyAI::getAction
 	{
 		if (turnCount == 1)
 		{
-			turnCount++;
+			turnCount == 0;
 			turnAround = false;
+			retrace.push(FORWARD);
 			return FORWARD;
 		}
 
 		turnCount++;
+		retrace.push(TURN_LEFT);
+		retrace.push(TURN_LEFT);
 		return TURN_LEFT;
 	}
+
 
 	if (goBack)
 	{
