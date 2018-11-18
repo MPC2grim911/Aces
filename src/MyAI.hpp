@@ -23,6 +23,7 @@
 #include "Agent.hpp"
 #include <iostream>
 #include <stack>
+#include <queue>
 
 using namespace std;
 
@@ -44,10 +45,13 @@ public:
 	// YOUR CODE BEGINS
 	// ======================================================================
 	stack <Action> retrace;
+	queue <Action> stuff;
+	bool doStuff;
 	int moves;
 	bool goBack;
 	bool arrowShot;
 	bool wumpusDead;
+	bool wumpusFound;
 	
 	// ======================================================================
 	// YOUR CODE ENDS
