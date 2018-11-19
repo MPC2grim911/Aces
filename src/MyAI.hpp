@@ -92,7 +92,7 @@ public:
 	void pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> &t); //check if unknown pits conflict with wump list, take out from wump and pit and add to explore accordingly
 	
 	bool getTarget(int x, int y, multimap<int, int> e, int &xD, int &yD, bool &n); //bool to get to target destination
-	void goToTarget(int &x, int &y, int &dir, int xDes, int yDes, multimap<int, int> safeMap, queue<Action> &result, bool &start);
+	bool goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, multimap<int, int> s, queue<Action> &res, bool &targ);
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
