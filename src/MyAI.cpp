@@ -76,7 +76,21 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	
 	if(oneMv){ //if the explore point is in immediate area, then don't back out
+		if(hlfTurn){
+			hlfTurn = false;
+			return TURN_RIGHT;
+		}
 		
+		if(dir == 0)
+			xPos += 1;
+		if(dir == 1)
+			yPos += 1;
+		if(dir == 2)
+			xPos -= 1;
+		if(dir == 3)
+			yPos -= 1;
+		
+		return FORWARD;
 	}
 	
 	if(target){ //setup target route
