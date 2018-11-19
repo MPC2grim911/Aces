@@ -419,10 +419,18 @@ void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position int
 	if(s.size() == 0)
 		s.insert(pair<int, int> (x, y));
 	else{
-		auto chkS = s.find(x); 
-		if(chkS != s.end()){
-			if(chkS->second != y)
-				s.insert(pair<int, int> (x, y));
+		auto const& chkS = s.find(x);
+		map<int, int>::iterator it;
+		bool newS = true;
+		for(it = chkS.first; it != chkS.second; it++){
+			if(it->second == y){
+				newS = false;
+				break;
+			}
+		}
+		
+		if(newS){
+			s.insert(pair<int, int> (x, y));
 		}
 	}
 	return;
