@@ -76,7 +76,21 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	
 	if(oneMv){ //if the explore point is in immediate area, then don't back out
+		if(hlfTurn){
+			hlfTurn = false;
+			return TURN_RIGHT;
+		}
 		
+		if(dir == 0)
+			xPos += 1;
+		if(dir == 1)
+			yPos += 1;
+		if(dir == 2)
+			xPos -= 1;
+		if(dir == 3)
+			yPos -= 1;
+		
+		return FORWARD;
 	}
 	
 	if(target){ //setup target route
@@ -96,10 +110,9 @@ Agent::Action MyAI::getAction
 			return TURN_LEFT;
 		}
 		
-		//find safe route to xDest and yDest 
+		//FIXME: find safe route to xDest and yDest AKA fill in exploreTile
 		 
-		//Andre this is your section
-		goToTarget(xPos, yPos, dir, xDest, yDest, safe, exploreTile, startQ);
+		goToTarget(xPos, yPos, xDest, yDest, safe, exploreTile, startQ);
 	}
 	
 	if (startQ) //result of goToTarget function
@@ -168,19 +181,19 @@ Agent::Action MyAI::getAction
 			moves++;
 
 			if(dir == 0){ 		
-				xPos -= 1; //to cancel out the FORWARD move position change in navigation
 				if(!xWall){//finds max dimensions of the maze
 					xLim = xPos;
 					xWall = true;
 				}
+				xPos  = xLim; //to cancel out the FORWARD move position change in navigation
 				dir = 1; //left turn directions
 			}
 			else if(dir == 1){
-				yPos -= 1;
 				if(!yWall){
 					yLim = yPos;
 					yWall = true;
 				}
+				yPos = yLim;
 				dir = 2;
 			}
 			else if(dir == 2){
@@ -443,10 +456,18 @@ void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position int
 	if(s.size() == 0)
 		s.insert(pair<int, int> (x, y));
 	else{
-		auto chkS = s.find(x); 
-		if(chkS != s.end()){
-			if(chkS->second != y)
-				s.insert(pair<int, int> (x, y));
+		auto const& chkS = s.find(x);
+		map<int, int>::iterator it;
+		bool newS = true;
+		for(it = chkS.first; it != chkS.second; it++){
+			if(it->second == y){
+				newS = false;
+				break;
+			}
+		}
+		
+		if(newS){
+			s.insert(pair<int, int> (x, y));
 		}
 	}
 	return;
@@ -484,13 +505,16 @@ void MyAI::surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multima
 	if(x != 0)
 		t.insert(pair<int, int>((x - 1), y));
 				
-	typename map <int, int>::iterator surIt;
+	map <int, int>::iterator surIt;
+	map<int, int>::iterator it;
 	for(surIt = s.begin(); surIt != s.end(); surIt++){//take out test list from safe list
-		auto itrS = t.find(surIt->first);
-				
-		if(itrS != t.end()){
-			if(itrS->second == surIt->second)
-				t.erase(itrS);
+		auto const & itrS = t.equal_range(surIt->first);
+			
+		for(it = itrS.first; it != itrS.second; it++){
+			if(itrS->second == surIt->second){
+				t.erase(it);
+				break;
+			}
 		}
 	}
 	
@@ -511,7 +535,7 @@ void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){ //unknown surr
 				m.insert(pair<int, int> (itA->first, itA->second));
 			}
 			else{
-				if(itr->second == itA->second)
+				if(itr->second != itA->second)
 					m.insert(pair<int, int>(itA->first, itA->second));
 			}
 		}
@@ -654,7 +678,7 @@ bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool&
 		
 		if(d < dist){
 			xD = itT->first;
-			yD = itT->first; // shouldn't this be itT->second;
+			yD = itT->second;
 			dist = d;
 		}
 	}
