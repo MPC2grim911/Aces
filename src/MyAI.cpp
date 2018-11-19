@@ -177,15 +177,18 @@ Agent::Action MyAI::getAction
 		
 		if (bump)
 		{
-			retrace.push(TURN_RIGHT);
-			moves++;
-
+			retrace.pop(); //cancel the FORWARD move in the stack
 			if(dir == 0){ 		
 				if(!xWall){//finds max dimensions of the maze
 					xLim = xPos;
 					xWall = true;
 				}
 				xPos  = xLim; //to cancel out the FORWARD move position change in navigation
+				if(yPos == yLim){
+					dir = 3;
+					retrace.push(TURN_LEFT);
+					return TURN_RIGHT;
+				}
 				dir = 1; //left turn directions
 			}
 			else if(dir == 1){
@@ -194,16 +197,32 @@ Agent::Action MyAI::getAction
 					yWall = true;
 				}
 				yPos = yLim;
+				if(xPos == 0){
+					dir = 0;
+					retrace.push(TURN_LEFT);
+					return TURN_RIGHT;
+				}
 				dir = 2;
 			}
 			else if(dir == 2){
 				xPos = 0;
+				if(yPos == 0){
+					dir = 1;
+					retrace.push(TURN_LEFT);
+					return TURN_RIGHT;
+				}
 				dir = 3;
 			}
 			else if(dir == 3){
 				yPos = 0;
+				if(xPos == xLim){
+					dir = 2;
+					retrace.push(TURN_LEFT);
+					return TURN_RIGHT;
+				}
 				dir = 0;
 			}
+			retrace.push(TURN_RIGHT);
 			return TURN_LEFT;
 		}
 
