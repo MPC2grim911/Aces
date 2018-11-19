@@ -24,7 +24,7 @@
 #include <iostream>
 #include <stack>
 #include <queue>
-
+#include <vector>
 using namespace std;
 
 class MyAI : public Agent
@@ -46,13 +46,20 @@ public:
 	// ======================================================================
 	stack <Action> retrace;
 	queue <Action> stuff;
+	vector< pair <int, int>> avoidMap;
+	vector< pair <int, int>> goMap;
+	pair<int, int> temp;
 	bool doStuff;
 	int moves;
 	bool goBack;
 	bool arrowShot;
 	bool wumpusDead;
 	bool wumpusFound;
+	int x, y, dir;
 	
+	void addGoMap();
+	bool checkAvoid(pair<int, int> test);
+
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================

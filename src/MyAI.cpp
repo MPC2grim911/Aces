@@ -35,6 +35,9 @@ MyAI::MyAI() : Agent()
 	wumpusDead = false;
 	wumpusFound = false;
 	doStuff = false;
+	x = 1;
+	y = 1;
+	dir = 2; // north: 1, east: 2, south: 3, west: 4
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -52,9 +55,11 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
+
+	/*
 	if (doStuff)
 	{
-		//cout << "doing stuff" << endl;
+		cout << "doing stuff" << endl;
 		if (stuff.empty())
 		{
 			doStuff = false;
@@ -67,23 +72,24 @@ Agent::Action MyAI::getAction
 			stuff.pop();
 			if (temp == TURN_LEFT)
 			{
-				//cout << "turned left" << endl;
+				cout << "turned left" << endl;
 			}
 			else if (temp == FORWARD)
 			{
-				//cout << "moved forward" << endl;
+				cout << "moved forward" << endl;
 			}
 			return temp;
 		}
 
-		//cout << "doStuff done" << endl;
+		cout << "doStuff done" << endl;
 	}
+	*/
 
 	if (goBack)
 	{
 		if (!retrace.empty())
 		{
-			//cout << "testing" << endl;
+			cout << "testing" << endl;
 			Action temp = retrace.top();
 			retrace.pop();
 			return temp;
@@ -93,13 +99,13 @@ Agent::Action MyAI::getAction
 			return CLIMB;
 		}
 
-		//cout << " got Error" << endl;
+		cout << " got Error" << endl;
 	}
 	else
 	{
 		if (glitter)
 		{
-			//cout << "Found gold" << endl;
+			cout << "Found gold" << endl;
 			goBack = true;
 			retrace.push(TURN_LEFT);
 			retrace.push(TURN_LEFT);
@@ -111,47 +117,54 @@ Agent::Action MyAI::getAction
 		{
 			if (breeze)
 			{
-				//cout << "I'm out first turn" << endl;
+				cout << "I'm out first turn" << endl;
 				return CLIMB;
 			}
 			else if (stench)
 			{
-				//cout << "shot an arrow" << endl;
+				cout << "shot an arrow" << endl;
 				moves++;
 				arrowShot = true;
 				return SHOOT;
 			}
 
-			//cout << "first turn move forward" << endl;
+			cout << "first turn move forward" << endl;
 			moves++;
 			retrace.push(FORWARD);
+			
+			addGoMap();
+
 			return FORWARD;
 		}
 
 		if (scream)
 		{
-			//cout << "killed wumpus" << endl;
+			cout << "killed wumpus" << endl;
 			wumpusDead = true;
 		}
 
 		if (arrowShot && !wumpusDead && moves == 1)
 		{
-			//cout << "found wumpus" << endl;
+			cout << "found wumpus" << endl;
 			wumpusFound = true;
-			doStuff = true;
-			//stuff.push(TURN_LEFT);
-			//retrace.push(TURN_RIGHT);
+			temp.first = 1;
+			temp.second = 2;
+			avoidMap.push_back(temp);
 			moves++;
-			stuff.push(FORWARD);
+			//doStuff = true;
+			//stuff.push(FORWARD);
+
+			addGoMap();
+
 			retrace.push(FORWARD);
-			return GRAB;
+			return FORWARD;
 		}
 
-		if (wumpusFound)
+		if (wumpusFound || wumpusDead)
 		{
 			if (breeze)
 			{
-				//cout << "too many moves" << endl;
+				cout << "theres a breeze" << endl;
 				goBack = true;
 				retrace.push(TURN_LEFT);
 				return TURN_LEFT;
@@ -159,18 +172,17 @@ Agent::Action MyAI::getAction
 
 			if (bump)
 			{
-				//cout << "Hit wall" << endl;
-				retrace.push(TURN_LEFT);
+				cout << "Hit wall" << endl;
+				retrace.push(TURN_RIGHT);
 				moves++;
-				return TURN_RIGHT;
+				return TURN_LEFT;
 			}
 
 			if (!breeze)
 			{
-				//cout << "Moved once" << endl;
+				cout << "Moved once" << endl;
 				retrace.push(FORWARD);
 				moves++;
-				//cout << moves << endl;
 				return FORWARD;
 
 
@@ -181,7 +193,7 @@ Agent::Action MyAI::getAction
 		{
 			if (stench || breeze)
 			{
-				//cout << "too many moves" << endl;
+				cout << "theres a breeze or stench" << endl;
 				goBack = true;
 				retrace.push(TURN_LEFT);
 				return TURN_LEFT;
@@ -189,7 +201,7 @@ Agent::Action MyAI::getAction
 
 			if (bump)
 			{
-				//cout << "Hit wall" << endl;
+				cout << "Hit wall" << endl;
 				retrace.push(TURN_RIGHT);
 				moves++;
 				return TURN_LEFT;
@@ -197,10 +209,9 @@ Agent::Action MyAI::getAction
 
 			if (!stench && !breeze)
 			{
-				//cout << "Moved once" << endl;
+				cout << "Moved once" << endl;
 				retrace.push(FORWARD);
 				moves++;
-				//cout << moves << endl;
 				return FORWARD;
 
 
@@ -223,6 +234,62 @@ Agent::Action MyAI::getAction
 // ======================================================================
 // YOUR CODE BEGINS
 // ======================================================================
+void MyAI::addGoMap()
+{
+	if (x == 1)
+	{
+		temp.first = x + 1;
+		temp.first = y;
+		if (checkAvoid(temp))
+			goMap.push_back(temp);
+	}
+	else
+	{
+		temp.first = x + 1;
+		temp.first = y;
+		if (checkAvoid(temp))
+			goMap.push_back(temp);
+
+		temp.first = x - 1;
+		temp.first = y;
+		if (checkAvoid(temp))
+			goMap.push_back(temp);
+	}
+
+	if (y == 1)
+	{
+		temp.first = x;
+		temp.first = y + 1;
+		if (checkAvoid(temp))
+			goMap.push_back(temp);
+	}
+	else
+	{
+		temp.first = x;
+		temp.first = y + 1;
+		if (checkAvoid(temp))
+			goMap.push_back(temp);
+
+		temp.first = x;
+		temp.first = y - 1;
+		if (checkAvoid(temp))
+			goMap.push_back(temp);
+	}
+	
+}
+
+bool MyAI::checkAvoid(pair<int, int> test)
+{
+	for (auto& element : avoidMap)
+	{
+		if (test == element)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
 
 
 // ======================================================================
