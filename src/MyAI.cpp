@@ -120,6 +120,8 @@ Agent::Action MyAI::getAction
 		if (exploreTile.empty())
 		{
 			startQ = false;
+	/*		if(goBack)
+				return CLIMB; */
 		}
 		else
 		{
@@ -159,6 +161,10 @@ Agent::Action MyAI::getAction
 		if (glitter)
 		{
 			goBack = true;
+			/*target = true
+			xDest = 0;
+			yDest = 0;
+			*/
 			retrace.push(TURN_LEFT);
 			retrace.push(TURN_LEFT);
 			return (GRAB);
@@ -313,11 +319,17 @@ Agent::Action MyAI::getAction
 						yWump = it->second;
 					}
 				}
+				unknownWump.clear();
+				//NEED TO go to a location in line with wumpus and face it
 			}
 
 
 			if (explore.size() == 0) { 	//how the agent should move
 				goBack = true;
+				/*turnAround = true;  //works when there is a long road
+				xDest = 0;
+				yDest = 0;
+				target = true;*/
 				retrace.push(TURN_LEFT);
 				return TURN_LEFT;
 			}
@@ -593,6 +605,7 @@ void MyAI::compSelf(multimap<int, int> &m, multimap<int, int> &m2, multimap<int,
 	}
 	else{
 	 	map <int, int>::iterator itC;
+		map <int, int>::iterator it;
 		for(itC = t.begin(); itC != t.end(); itC++){
 			auto itr = m.find(itC->first);
 					
@@ -601,7 +614,17 @@ void MyAI::compSelf(multimap<int, int> &m, multimap<int, int> &m2, multimap<int,
 			}
 			else{
 				if(itr->second == itC->second){
-					m2.insert(pair<int, int>(itC->first, itC->second)); //add point to known list
+					auto const & itM = m2.equal_range(itC->first);
+					bool exists = false;
+					for(it = itM.first; it != itM.second; it++){
+						if(it->second == itC->second){
+							exists = true;
+							break;
+						}
+					}
+					
+					if(!exists)
+						m2.insert(pair<int, int>(itC->first, itC->second)); //add point to known list
 					m.erase(itr);	//take out point from unknown list
 				}
 			}
