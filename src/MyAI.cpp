@@ -468,13 +468,16 @@ void MyAI::surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multima
 	if(x != 0)
 		t.insert(pair<int, int>((x - 1), y));
 				
-	typename map <int, int>::iterator surIt;
+	map <int, int>::iterator surIt;
+	map<int, int>::iterator it;
 	for(surIt = s.begin(); surIt != s.end(); surIt++){//take out test list from safe list
-		auto itrS = t.find(surIt->first);
-				
-		if(itrS != t.end()){
-			if(itrS->second == surIt->second)
-				t.erase(itrS);
+		auto const & itrS = t.equal_range(surIt->first);
+			
+		for(it = itrS.first; it != itrS.second; it++){
+			if(itrS->second == surIt->second){
+				t.erase(it);
+				break;
+			}
 		}
 	}
 	
