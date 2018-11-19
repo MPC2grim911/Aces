@@ -322,6 +322,7 @@ Agent::Action MyAI::getAction
 							}
 							else if(dir == 1){
 								oneMv = false;
+								yPos++;
 								retrace.push(FORWARD);
 								return FORWARD;
 							}
@@ -337,26 +338,29 @@ Agent::Action MyAI::getAction
 								return TURN_RIGHT;
 							}
 						}
-						if(dir == 0){
-							dir = 3;
-							retrace.push(TURN_LEFT);
-							return TURN_RIGHT;
-						}
-						else if(dir == 1){
-							hlfTurn = true;
-							dir = 3;
-							retrace.push(TURN_LEFT);
-							return TURN_RIGHT;
-						}
-						else if(dir == 2){
-							dir = 3;
-							retrace.push(TURN_RIGHT);
-							return TURN_LEFT;
-						}
-						else if(dir == 3){
-							oneMv = false;
-							retrace.push(FORWARD);
-							return FORWARD;
+						else{ 
+							if(dir == 0){
+								dir = 3;
+								retrace.push(TURN_LEFT);
+								return TURN_RIGHT;
+							}
+							else if(dir == 1){
+								hlfTurn = true;
+								dir = 3;
+								retrace.push(TURN_LEFT);
+								return TURN_RIGHT;
+							}
+							else if(dir == 2){
+								dir = 3;
+								retrace.push(TURN_RIGHT);
+								return TURN_LEFT;
+							}
+							else if(dir == 3){
+								oneMv = false;
+								yPos -= 1;
+								retrace.push(FORWARD);
+								return FORWARD;
+							}
 						}
 					}
 					else if(yPos == yDest){ //if destination is to the left or right of tile
@@ -364,6 +368,7 @@ Agent::Action MyAI::getAction
 							if(dir == 0){
 								oneMv = false;
 								retrace.push(FORWARD);
+								xPos++;
 								return FORWARD;
 							}
 							else if(dir == 1){
@@ -383,26 +388,29 @@ Agent::Action MyAI::getAction
 								return TURN_LEFT;
 							}
 						}
-						if(dir == 0){
-							hlfTurn = true;
-							dir = 2;
-							retrace.push(TURN_LEFT);
-							return TURN_RIGHT;
-						}
-						else if(dir == 1){
-							dir = 2;
-							retrace.push(TURN_RIGHT);
-							return TURN_LEFT;
-						}
-						else if(dir == 2){
-							oneMv = false;
-							retrace.push(FORWARD);
-							return FORWARD;
-						}
-						else if(dir == 3){
-							dir = 2;
-							retrace.push(TURN_LEFT);
-							return TURN_RIGHT;
+						else{
+							if(dir == 0){
+								hlfTurn = true;
+								dir = 2;
+								retrace.push(TURN_LEFT);
+								return TURN_RIGHT;
+							}
+							else if(dir == 1){
+								dir = 2;
+								retrace.push(TURN_RIGHT);
+								return TURN_LEFT;
+							}
+							else if(dir == 2){
+								oneMv = false;
+								xPos -= 1;
+								retrace.push(FORWARD);
+								return FORWARD;
+							}
+							else if(dir == 3){
+								dir = 2;
+								retrace.push(TURN_LEFT);
+								return TURN_RIGHT;
+							}
 						}
 					}
 				}
