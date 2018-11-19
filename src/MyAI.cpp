@@ -78,6 +78,7 @@ Agent::Action MyAI::getAction
 	if(oneMv){ //if the explore point is in immediate area, then don't back out
 		if(hlfTurn){
 			hlfTurn = false;
+			retrace.push(TURN_LEFT);
 			return TURN_RIGHT;
 		}
 		
@@ -89,7 +90,8 @@ Agent::Action MyAI::getAction
 			xPos -= 1;
 		if(dir == 3)
 			yPos -= 1;
-		
+		retrace.push(FORWARD);
+		oneMv = false;
 		return FORWARD;
 	}
 	
@@ -315,75 +317,91 @@ Agent::Action MyAI::getAction
 						if((yDest - yPos) == 1){
 							if(dir == 0){
 								dir = 1;
+								retrace.push(TURN_RIGHT);
 								return TURN_LEFT;
 							}
 							else if(dir == 1){
 								oneMv = false;
+								retrace.push(FORWARD);
 								return FORWARD;
 							}
 							else if(dir == 2){
 								dir = 1;
+								retrace.push(TURN_LEFT);
 								return TURN_RIGHT;
 							}
 							else if(dir == 3){
 								hlfTurn = true;
 								dir = 1;
+								retrace.push(TURN_LEFT);
 								return TURN_RIGHT;
 							}
 						}
 						if(dir == 0){
 							dir = 3;
+							retrace.push(TURN_LEFT);
 							return TURN_RIGHT;
 						}
 						else if(dir == 1){
 							hlfTurn = true;
 							dir = 3;
+							retrace.push(TURN_LEFT);
 							return TURN_RIGHT;
 						}
 						else if(dir == 2){
 							dir = 3;
+							retrace.push(TURN_RIGHT);
 							return TURN_LEFT;
 						}
 						else if(dir == 3){
 							oneMv = false;
+							retrace.push(FORWARD);
 							return FORWARD;
 						}
 					}
-					if(yPos == yDest){ //if destination is to the left or right of tile
+					else if(yPos == yDest){ //if destination is to the left or right of tile
 						if((xDest - xPos) == 1){
 							if(dir == 0){
 								oneMv = false;
+								retrace.push(FORWARD);
 								return FORWARD;
 							}
 							else if(dir == 1){
 								dir = 0;
+								retrace.push(TURN_LEFT);
 								return TURN_RIGHT;
 							}
 							else if(dir == 2){
 								hlfTurn = true;
 								dir = 0;
+								retrace.push(TURN_LEFT);
 								return TURN_RIGHT;
 							}
 							else if(dir == 3){
 								dir = 0;
+								retrace.push(TURN_LEFT);
 								return TURN_LEFT;
 							}
 						}
 						if(dir == 0){
 							hlfTurn = true;
 							dir = 2;
+							retrace.push(TURN_LEFT);
 							return TURN_RIGHT;
 						}
 						else if(dir == 1){
 							dir = 2;
+							retrace.push(TURN_RIGHT);
 							return TURN_LEFT;
 						}
 						else if(dir == 2){
 							oneMv = false;
+							retrace.push(FORWARD);
 							return FORWARD;
 						}
 						else if(dir == 3){
 							dir = 2;
+							retrace.push(TURN_LEFT);
 							return TURN_RIGHT;
 						}
 					}
