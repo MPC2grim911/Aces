@@ -830,7 +830,7 @@ bool MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, 
 			dir = 1;
 			y += 1;
 		}
-		else{
+		else if((yD - nextY) == -1){
 			if(dir == 0){
 				res.push(TURN_RIGHT);
 				res.push(FORWARD);
@@ -873,7 +873,7 @@ bool MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, 
 			dir = 0;
 			x += 1;
 		}
-		else{
+		else if((xD - nextX) == -1){
 			if(dir == 0){
 				res.push(TURN_RIGHT);
 				res.push(TURN_RIGHT);
