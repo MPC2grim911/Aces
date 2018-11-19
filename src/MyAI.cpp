@@ -144,19 +144,19 @@ Agent::Action MyAI::getAction
 			moves++;
 
 			if(dir == 0){ 		
-				xPos -= 1; //to cancel out the FORWARD move position change in navigation
 				if(!xWall){//finds max dimensions of the maze
 					xLim = xPos;
 					xWall = true;
 				}
+				xPos  = xLim; //to cancel out the FORWARD move position change in navigation
 				dir = 1; //left turn directions
 			}
 			else if(dir == 1){
-				yPos -= 1;
 				if(!yWall){
 					yLim = yPos;
 					yWall = true;
 				}
+				yPos = yLim;
 				dir = 2;
 			}
 			else if(dir == 2){
