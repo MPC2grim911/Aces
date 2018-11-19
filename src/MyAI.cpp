@@ -480,7 +480,7 @@ void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position int
 	if(s.size() == 0)
 		s.insert(pair<int, int> (x, y));
 	else{
-		auto const& chkS = s.find(x);
+		auto const& chkS = s.equal_range(x);
 		map<int, int>::iterator it;
 		bool newS = true;
 		for(it = chkS.first; it != chkS.second; it++){
@@ -535,7 +535,7 @@ void MyAI::surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multima
 		auto const & itrS = t.equal_range(surIt->first);
 			
 		for(it = itrS.first; it != itrS.second; it++){
-			if(itrS->second == surIt->second){
+			if(it->second == surIt->second){
 				t.erase(it);
 				break;
 			}
@@ -739,7 +739,7 @@ bool MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, 
 	map<int, int>::iterator it;
 	map<int, int>::iterator itr;	
 
-	multimap<int, int>:: tPath;
+	multimap<int, int> tPath;
 	for (it = t.begin(); it != t.end(); it++) //take out surrounding tiles that are not in the safe list
 	{
 		auto const & tPaths = s.equal_range(it->first);
@@ -747,7 +747,7 @@ bool MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, 
 		int xPath;
 		int yPath;
 		
-		for(itr = tPaths.first; itr = tPaths.second; itr++){
+		for(itr = tPaths.first; itr != tPaths.second; itr++){
 			if (it->second == itr->second)
 			{
 				inSafe = true;
