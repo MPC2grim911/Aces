@@ -99,10 +99,34 @@ Agent::Action MyAI::getAction
 		//find safe route to xDest and yDest 
 		 
 		//Andre this is your section
-		goToTarget(xPos, yPos, xDest, yDest, safe, exploreTile, startQ);
+		goToTarget(xPos, yPos, dir, xDest, yDest, safe, exploreTile, startQ);
 	}
 	
-	
+	if (startQ) //result of goToTarget function
+	{
+		if (exploreTile.empty())
+		{
+			startQ = false;
+		}
+		else
+		{
+			Action temp = exploreTile.front();
+			exploreTile.pop();
+			if (temp == TURN_LEFT)
+			{
+				retrace.push(TURN_RIGHT);
+			}
+			else if (temp == TURN_RIGHT)
+			{
+				retrace.push(TURN_LEFT);
+			}
+			else if (temp == FORWARD)
+			{
+				retrace.push(FORWARD);
+			}
+			return temp;
+		}
+	}
 
 	if (goBack)
 	{
@@ -642,8 +666,284 @@ bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool&
 	return true;
 }
 
-void MyAI::goToTarget(int x, int y, int xDes, int yDes, multimap<int, int> safeMap, queue<Action> &result, bool start)
+void MyAI::goToTarget(int &x, int &y, int &dir, int xDes, int yDes, multimap<int, int> safeMap, queue<Action> &result, bool &start)
 {
+	map<int, int>::iterator it;
+	multimap<int, int> copy; //make a copy of safe map that we will change only in this function
+	copy.insert(safeMap.begin(), safeMap.end());
+
+	for (it = copy.begin(); it != copy.end(); it++) //take out the starting square
+	{
+		if (it->first == x && it->second == y)
+		{
+			copy.erase(it);
+		}
+	}
+	int xTest = x;
+	int yTest = y;
+	int dirTest = dir;
+
+	while ( (xTest != xDes) && (yTest != yDes) )
+	{
+		bool moved = false;
+
+		for (it = copy.begin(); it != copy.end(); it++) //find a safespot adjacent to current position
+		{
+			if (abs(it->first - xTest == 1))
+			{
+				moved = true;
+				if (it->first > xTest)
+				{
+					if (dirTest == 1)
+						result.push(TURN_RIGHT);
+
+					if (dirTest == 2)
+					{
+						result.push(TURN_RIGHT);
+						result.push(TURN_RIGHT);
+					}
+						
+					if (dirTest == 3)
+						result.push(TURN_LEFT);
+
+					dirTest = 0;
+					result.push(FORWARD);
+					xTest++;
+					copy.erase(it);
+					break;
+
+				}
+				else if (xTest > it->first)
+				{
+					if (dirTest == 0)
+					{
+						result.push(TURN_LEFT);
+						result.push(TURN_LEFT);
+					}
+					
+					if (dirTest == 1)
+					{
+						result.push(TURN_LEFT);
+					}
+
+					if (dirTest == 3)
+						result.push(TURN_RIGHT);
+
+					dirTest = 2;
+					result.push(FORWARD);
+					xTest++;
+					copy.erase(it);
+					break;
+				}
+			}
+			else if (abs(it->second - yTest) == 1)
+			{
+				moved = true;
+				if (it->second > yTest)
+				{
+					if (dirTest == 0)
+						result.push(TURN_LEFT);
+
+					if (dirTest == 2)
+						result.push(TURN_RIGHT);
+				
+					if (dirTest == 3)
+					{
+						result.push(TURN_LEFT);
+						result.push(TURN_LEFT);
+					}
+						
+
+					dirTest = 1;
+					result.push(FORWARD);
+					yTest++;
+					copy.erase(it);
+					break;
+				}
+				else if (it->second < yTest)
+				{
+					if (dirTest == 0)
+						result.push(TURN_RIGHT);
+
+					if (dirTest == 1)
+					{
+						result.push(TURN_LEFT);
+						result.push(TURN_LEFT);
+					}
+
+					if (dirTest == 2)
+						result.push(TURN_LEFT);
+
+
+					dirTest = 3;
+					result.push(FORWARD);
+					yTest++;
+					copy.erase(it);
+					break;
+				}
+			}
+			else // if we get here that means we need to go backwards
+			{
+				if (moved)
+				{
+					result.push(TURN_LEFT);
+					result.push(TURN_LEFT);
+					result.push(FORWARD);
+					for (it = safeMap.begin(); it != safeMap.end(); it++)
+					{
+						if (it->first == xTest && it->second == yTest)
+						{
+							safeMap.erase(it);
+						}
+						
+					}
+
+					if (dirTest == 0)
+					{
+						xTest++;
+						dirTest = 2;
+					}
+						
+					if (dirTest == 1)
+					{
+						yTest++;
+						dirTest = 3;
+					}
+						
+					if (dirTest == 2)
+					{
+						xTest--;
+						dirTest = 0;
+					}
+						
+					if (dirTest == 3)
+					{
+						yTest--;
+						dirTest = 1;
+					}
+						
+					moved = false;
+				}
+				else //if we get here we just traverse safe tiles
+				{
+					for (it = safeMap.begin(); it != safeMap.end(); it++) 
+					{
+						if (abs(it->first - xTest == 1))
+						{
+							moved = true;
+							if (it->first > xTest)
+							{
+								if (dirTest == 1)
+									result.push(TURN_RIGHT);
+
+								if (dirTest == 2)
+								{
+									result.push(TURN_RIGHT);
+									result.push(TURN_RIGHT);
+								}
+
+								if (dirTest == 3)
+									result.push(TURN_LEFT);
+
+								dirTest = 0;
+								result.push(FORWARD);
+								xTest++;
+								copy.erase(it);
+								break;
+
+							}
+							else if (xTest > it->first)
+							{
+								if (dirTest == 0)
+								{
+									result.push(TURN_LEFT);
+									result.push(TURN_LEFT);
+								}
+
+								if (dirTest == 1)
+								{
+									result.push(TURN_LEFT);
+								}
+
+								if (dirTest == 3)
+									result.push(TURN_RIGHT);
+
+								dirTest = 2;
+								result.push(FORWARD);
+								xTest++;
+								copy.erase(it);
+								break;
+							}
+						}
+						else if (abs(it->second - yTest) == 1)
+						{
+							moved = true;
+							if (it->second > yTest)
+							{
+								if (dirTest == 0)
+									result.push(TURN_LEFT);
+
+								if (dirTest == 2)
+									result.push(TURN_RIGHT);
+
+								if (dirTest == 3)
+								{
+									result.push(TURN_LEFT);
+									result.push(TURN_LEFT);
+								}
+
+
+								dirTest = 1;
+								result.push(FORWARD);
+								yTest++;
+								copy.erase(it);
+								break;
+							}
+							else if (it->second < yTest)
+							{
+								if (dirTest == 0)
+									result.push(TURN_RIGHT);
+
+								if (dirTest == 1)
+								{
+									result.push(TURN_LEFT);
+									result.push(TURN_LEFT);
+								}
+
+								if (dirTest == 2)
+									result.push(TURN_LEFT);
+
+
+								dirTest = 3;
+								result.push(FORWARD);
+								yTest++;
+								copy.erase(it);
+								break;
+							}
+						}
+						else
+						{
+							while (!result.empty())
+							{
+								result.pop();
+							}
+							return; //we're stuck so we dont move
+						}
+					}
+				}
+				
+			}
+
+
+			
+		}
+	}
+	
+	startQ = true;
+	x = xTest;
+	y = yTest;
+	dir = dirTest;
+
 
 }
 
