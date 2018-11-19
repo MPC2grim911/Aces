@@ -660,6 +660,9 @@ void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, i
 	}
 	
 	//takes out overlapping points from wumpus and unknown pit list and adds to explore list
+	int xDel;
+	int yDel;
+	bool found = false;
 	for(it = t.begin(); it != t.end(); it++){
 		auto const& wComp = p.equal_range(it->first);
 		
@@ -667,18 +670,22 @@ void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, i
 			if(itr->second == it->second){
 				p.erase(itr);
 				e.insert(pair<int, int>(it->first, it->second));
-				
-				auto const& wump = w.equal_range(it->first);
-				for(i = wump.first; i != wump.second; i++){
-					if(i->second == it->second){
-						w.erase(i);
-						break;
-					}
-				}
+				xDel = it->first;
+				yDel = it->second; 
+				found = true;
+				break;
 			}
 		}
 	}
 	
+	if(found){
+		auto const& wump = w.equal_range(xDel);
+		for(i = wump.first; i != wump.second; i++){
+			if(i->second == yDel){
+				w.erase(i);
+				break;
+			}
+	}
 	return;
 }
 
