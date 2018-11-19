@@ -96,9 +96,8 @@ Agent::Action MyAI::getAction
 			return TURN_LEFT;
 		}
 		
-		//find safe route to xDest and yDest 
+		//FIXME: find safe route to xDest and yDest AKA fill in exploreTile
 		 
-		//Andre this is your section
 		goToTarget(xPos, yPos, xDest, yDest, safe, exploreTile, startQ);
 	}
 	
@@ -498,7 +497,7 @@ void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){ //unknown surr
 				m.insert(pair<int, int> (itA->first, itA->second));
 			}
 			else{
-				if(itr->second == itA->second)
+				if(itr->second != itA->second)
 					m.insert(pair<int, int>(itA->first, itA->second));
 			}
 		}
