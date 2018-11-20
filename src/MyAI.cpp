@@ -75,6 +75,8 @@ Agent::Action MyAI::getAction
 	// YOUR CODE BEGINS
 	// ======================================================================
 	
+	cout << xPos << ", " << yPos << ", " << dir << endl;
+
 	if(oneMv){ //if the explore point is in immediate area, then don't back out
 		if(hlfTurn){
 			hlfTurn = false;
@@ -703,11 +705,12 @@ void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, i
 	
 	if(found){
 		auto const& wump = w.equal_range(xDel);
-		for(i = wump.first; i != wump.second; i++){
-			if(i->second == yDel){
+		for (i = wump.first; i != wump.second; i++) {
+			if (i->second == yDel) {
 				w.erase(i);
 				break;
 			}
+		}
 	}
 	return;
 }
