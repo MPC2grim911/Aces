@@ -25,6 +25,7 @@
 #include <stack>
 #include <queue>
 #include <vector>
+#include <iterator>
 using namespace std;
 
 class MyAI : public Agent
@@ -48,6 +49,7 @@ public:
 	queue <Action> stuff;
 	vector< pair <int, int>> avoidMap;
 	vector< pair <int, int>> goMap;
+	pair<int, int> test;
 	pair<int, int> temp;
 	bool doStuff;
 	int moves;
@@ -55,11 +57,22 @@ public:
 	bool arrowShot;
 	bool wumpusDead;
 	bool wumpusFound;
-	int x, y, dir;
-	
+	bool foundGold;
+	int x, y, dir, xLim, yLim;
+	bool spin;
 	void addGoMap();
 	bool checkAvoid(pair<int, int> test);
-
+	void updatePos();
+	void updateLeft();
+	void updateRight();
+	void updateBump();
+	Action explore();
+	bool canExplore();
+	Action moveUp();
+	Action moveDown();
+	Action moveLeft();
+	Action moveRight();
+	
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
