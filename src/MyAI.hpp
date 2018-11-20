@@ -49,6 +49,7 @@ public:
 	queue <Action> stuff;
 	vector< pair <int, int>> avoidMap;
 	vector< pair <int, int>> goMap;
+	vector< pair<int, int>> explored;
 	pair<int, int> test;
 	pair<int, int> temp;
 	bool doStuff;
@@ -72,6 +73,7 @@ public:
 	Action moveDown();
 	Action moveLeft();
 	Action moveRight();
+	void removeDanger();
 	
 	// ======================================================================
 	// YOUR CODE ENDS

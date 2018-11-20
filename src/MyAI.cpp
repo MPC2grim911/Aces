@@ -60,10 +60,17 @@ Agent::Action MyAI::getAction
 	// YOUR CODE BEGINS
 	// ======================================================================
 
+	cout << x << ", " << y << ", " << dir << endl;
+	
+	if (moves > 400)
+	{
+		cout << "lost" << endl;
+
+	}
 	
 	if (doStuff)
 	{
-		cout << "doing stuff" << endl;
+		//cout << "doing stuff" << endl;
 		if (stuff.empty())
 		{
 			doStuff = false;
@@ -76,22 +83,25 @@ Agent::Action MyAI::getAction
 			stuff.pop();
 			if (temp == TURN_LEFT)
 			{
-				cout << "turned left" << endl;
-				retrace.push(TURN_LEFT);
+				//cout << "turned left" << endl;
+				updateLeft();
+				retrace.push(TURN_RIGHT);
 			}
 			else if (temp == TURN_RIGHT)
 			{
-				cout << "turned right" << endl;
-				retrace.push(TURN_RIGHT);
+				//cout << "turned right" << endl;
+				updateRight();
+				retrace.push(TURN_LEFT);
 			}
 			else if (temp == FORWARD)
 			{
-				cout << "moved forward" << endl;
+				//cout << "moved forward" << endl;
+				retrace.push(FORWARD);
 			}
 			return temp;
 		}
 
-		cout << "doStuff done" << endl;
+		//cout << "doStuff done" << endl;
 	}
 	
 
@@ -99,6 +109,7 @@ Agent::Action MyAI::getAction
 	{
 		if (canExplore() && !foundGold && !(test.first == x && test.second == y))
 		{
+			cout << "explore more" << endl;
 			goBack = false;
 			retrace.push(TURN_LEFT);
 			retrace.push(TURN_LEFT);
@@ -108,7 +119,7 @@ Agent::Action MyAI::getAction
 
 		if (!retrace.empty())
 		{
-			cout << "testing" << endl;
+			cout << "going back" << endl;
 			Action temp = retrace.top();
 			retrace.pop();
 			if (temp == TURN_LEFT)
@@ -136,6 +147,7 @@ Agent::Action MyAI::getAction
 	}
 	else
 	{
+		cout << "check glitter" << endl;
 		if (glitter)
 		{
 			cout << "Found gold" << endl;
@@ -162,7 +174,7 @@ Agent::Action MyAI::getAction
 				return SHOOT;
 			}
 
-			cout << "first turn move forward" << endl;
+			cout << "first turn move" << endl;
 			moves++;
 			//retrace.push(FORWARD);
 			addGoMap();
@@ -186,13 +198,17 @@ Agent::Action MyAI::getAction
 			temp.first = 1;
 			temp.second = 2;
 			avoidMap.push_back(temp);
+			
 			moves++;
 
 			addGoMap();
-			retrace.push(FORWARD);
+			removeDanger();
+			//retrace.push(FORWARD);
 
-			updatePos();
-			return FORWARD;
+			//updatePos();
+			//return FORWARD;
+			Action temp = explore();
+			return temp;
 		}
 
 		if (wumpusFound || wumpusDead)
@@ -212,21 +228,25 @@ Agent::Action MyAI::getAction
 			{
 				cout << "Hit wall" << endl;
 				updateBump();
+				cout << "test1" << endl;
 				retrace.push(TURN_RIGHT);
+				cout << "test2" << endl;
 				moves++;
 				updateLeft();
+				cout << "test3" << endl;
 				return TURN_LEFT;
 			}
 
 			if (!breeze)
 			{
-				cout << "Moved once" << endl;
+				cout << "Move" << endl;
 				//retrace.push(FORWARD);
 				moves++;
 				addGoMap();
 
 
 				Action temp = explore();
+
 				return temp;
 
 			}
@@ -248,20 +268,24 @@ Agent::Action MyAI::getAction
 			{
 				cout << "Hit wall" << endl;
 				updateBump();
+				cout << "test4" << endl;
 				retrace.push(TURN_RIGHT);
+				cout << "test5" << endl;
 				moves++;
 				updateLeft();
+				cout << "test6" << endl;
 				return TURN_LEFT;
 			}
 
 			if (!stench && !breeze)
 			{
-				cout << "Moved once" << endl;
+				cout << "Move" << endl;
 				//retrace.push(FORWARD);
 				moves++;
 				addGoMap();
 
 				Action temp = explore();
+		
 				return temp;
 
 
@@ -298,7 +322,11 @@ void MyAI::addGoMap()
 		temp.first = x - 1;
 		temp.second = y;
 		if (checkAvoid(temp))
+		{
+			cout << "added -1" << endl;
 			goMap.push_back(temp);
+		}
+			
 	}
 	else
 	{
@@ -344,10 +372,33 @@ void MyAI::addGoMap()
 
 bool MyAI::checkAvoid(pair<int, int> test)
 {
+	if (test.first == 1 && test.second == 1)
+	{
+		cout << "dont add 1st spot" << endl;
+		return false;
+	}
 	for (auto& element : avoidMap)
 	{
 		if (test == element)
 		{
+			return false;
+		}
+	}
+
+	for (auto& element : goMap)
+	{
+		if (test == element)
+		{
+			cout << "no duplicates" << endl;
+			return false;
+		}
+	}
+
+	for (auto& element : explored)
+	{
+		if (test == element)
+		{
+			cout << "already been here" << endl;
 			return false;
 		}
 	}
@@ -417,6 +468,7 @@ void MyAI::updateRight()
 
 void MyAI::updateBump()
 {
+	cout << "break 1" << endl;
 	if (dir == 1)
 	{
 		y--;
@@ -428,39 +480,74 @@ void MyAI::updateBump()
 		xLim = x;
 	}
 	
+	cout << "break 2" << endl;
 	vector< pair<int, int>>::iterator it;
 
-	for (it = goMap.begin(); it != goMap.end(); it++)
+	cout << "break 3" << endl;
+	for (it = goMap.begin(); it != goMap.end();)
 	{
+		/*
+		size_t zero = 0;
+		if (goMap.size() != zero)
+		{
+			if (xLim > -1)
+			{
+				if (it->first > xLim)
+				{
+					goMap.erase(it);
+				}
+			}
+
+			cout << "break 5" << endl;
+			if (yLim > -1)
+			{
+				if (it->second > yLim)
+				{
+					goMap.erase(it);
+				}
+			}
+		}
+		*/
+		
 		if (xLim > -1)
 		{
 			if (it->first > xLim)
 			{
 				goMap.erase(it);
 			}
+			else
+			{
+				it++;
+			}
 		}
 
+		cout << "break 5" << endl;
 		if (yLim > -1)
 		{
 			if (it->second > yLim)
 			{
 				goMap.erase(it);
 			}
+			else
+			{
+				it++;
+			}
 		}
+		
 	}
-
+	cout << "break 6" << endl;
 }
 
 bool MyAI::canExplore()
 {
 	for (auto& element : goMap)
 	{
-		if (abs(element.first - x) == 1)
+		if ( (abs(element.first - x) == 1) && element.second == y)
 		{
 			return true;
 		}
 
-		if (abs(element.second - y) == 1)
+		if ( (abs(element.second - y) == 1) && element.first == x)
 		{
 			return true;
 		}
@@ -475,38 +562,61 @@ Agent::Action MyAI::explore()
 	vector< pair<int, int>>::iterator it;
 	for (it = goMap.begin(); it != goMap.end(); it++)
 	{
-		if (it->first - x == 1)
+		if (it->first - x == 1 && it->second == y)
 		{
+			cout << "move right, " << dir << endl;
+			temp.first = it->first;
+			temp.second = it->second;
+			explored.push_back(temp);
 			goMap.erase(it);
+			
 			Action temp = moveRight();
 			return temp;
 		}
-		else if (x - it->first == 1)
+		else if (x - it->first == 1 && it->second == y)
 		{
+			cout << "move left, " << dir << endl;
+			temp.first = it->first;
+			temp.second = it->second;
+			explored.push_back(temp);
 			goMap.erase(it);
+			
 			Action temp = moveLeft();
 			return temp;
 		}
 
-		if (it->second - y == 1)
+		if (it->second - y == 1 && it->first == x)
 		{
+			cout << "move up, "<< dir << endl;
+			temp.first = it->first;
+			temp.second = it->second;
+			explored.push_back(temp);
 			goMap.erase(it);
 			Action temp = moveUp();
 			return temp;
 		}
-		else if (y - it->second == 1)
+		else if (y - it->second == 1 && it->first == x)
 		{
+			cout << "move down, " << dir << endl;
+			temp.first = it->first;
+			temp.second = it->second;
+			explored.push_back(temp);
 			goMap.erase(it);
 			Action temp = moveDown();
 			return temp;
 		}
 	}
 
+	
+
 	//turn 180 and start goBack if cannot make move (might have to use Queue)
-	goBack == true;
+	goBack = true;
 	retrace.push(TURN_LEFT);
 	updateLeft();
+
+
 	return TURN_LEFT;
+
 }
 
 Agent::Action MyAI::moveUp()
@@ -523,32 +633,35 @@ Agent::Action MyAI::moveUp()
 	}
 	else if (dir == 2)
 	{
-		dir = 1;
+		//dir = 1;
 		//stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+		updateLeft();
 		return TURN_LEFT;
 
 	}
 	else if (dir == 3)
 	{
-		dir = 1;
+		//dir = 1;
 		//stuff.push(TURN_LEFT);
 		stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+		updateLeft();
 		return TURN_LEFT;
 
 	}
 	else if (dir == 4)
 	{
-		dir = 1;
+		//dir = 1;
 		//stuff.push(TURN_RIGHT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_LEFT);
+		updateRight();
 		return TURN_RIGHT;
 
 	}
@@ -563,22 +676,26 @@ Agent::Action MyAI::moveDown()
 
 	if (dir == 1)
 	{
-		dir = 3;
+		//dir = 3;
 		//stuff.push(TURN_LEFT);
 		stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+
+		updateLeft();
 		return TURN_LEFT;
 
 	}
 	else if (dir == 2)
 	{
-		dir = 3;
+		//dir = 3;
 		//stuff.push(TURN_RIGHT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_LEFT);
+
+		updateRight();
 		return TURN_RIGHT;
 
 	}
@@ -592,11 +709,12 @@ Agent::Action MyAI::moveDown()
 	}
 	else if (dir == 4)
 	{
-		dir = 3;
+		//dir = 3;
 		//stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+		updateLeft();
 		return TURN_LEFT;
 	}
 
@@ -609,32 +727,35 @@ Agent::Action MyAI::moveLeft()
 	
 	if (dir == 1)
 	{
-		dir = 4;
+		//dir = 4;
 		//stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+		updateLeft();
 		return TURN_LEFT;
 
 	}
 	else if (dir == 2)
 	{
-		dir = 4;
+		//dir = 4;
 		//stuff.push(TURN_LEFT);
 		stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+		updateLeft();
 		return TURN_LEFT;
 
 	}
 	else if (dir == 3)
 	{
-		dir = 4;
+		//dir = 4;
 		//stuff.push(TURN_RIGHT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_LEFT);
+		updateRight();
 		return TURN_RIGHT;
 
 	}
@@ -657,11 +778,12 @@ Agent::Action MyAI::moveRight()
 
 	if (dir == 1)
 	{
-		dir = 2;
+		//dir = 2;
 		//stuff.push(TURN_RIGHT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_LEFT);
+		updateRight();
 		return TURN_RIGHT;
 
 	}
@@ -675,22 +797,24 @@ Agent::Action MyAI::moveRight()
 	}
 	else if (dir == 3)
 	{
-		dir = 2;
+		//dir = 2;
 		//stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+		updateLeft();
 		return TURN_LEFT;
 
 	}
 	else if (dir == 4)
 	{
-		dir = 2;
+		//dir = 2;
 		//stuff.push(TURN_LEFT);
 		stuff.push(TURN_LEFT);
 		stuff.push(FORWARD);
 
 		retrace.push(TURN_RIGHT);
+		updateLeft();
 		return TURN_LEFT;
 
 	}
@@ -698,6 +822,28 @@ Agent::Action MyAI::moveRight()
 	
 }
 
+void MyAI::removeDanger()
+{
+	vector< pair<int, int>>::iterator it;
+	vector< pair<int, int>>::iterator it2;
+
+	for (it = avoidMap.begin(); it != avoidMap.end(); it++)
+	{
+		for (it2 = goMap.begin(); it2 != goMap.end(); )
+		{
+			if (it->first == it2->first && it->second == it2->second)
+			{
+				goMap.erase(it2);
+			}
+			else
+			{
+				it2++;
+			}
+		}
+	}
+
+	
+}
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================
