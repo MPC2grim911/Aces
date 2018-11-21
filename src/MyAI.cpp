@@ -700,7 +700,7 @@ void MyAI::exDelSB(multimap<int, int> &e, multimap<int, int> &t){ //takes unknow
 }
 
 //checks unknown wumpus to known and unknown pits and adds to explore
-void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> &t){ 
+void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> t){ 
 	map<int,int>::iterator it;
 	map<int,int>::iterator itr;
 	map<int,int>::iterator i;
@@ -758,7 +758,7 @@ void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, i
 }
 
 //checks unknown pits to unknown wumpus and adds to explore
-void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> &t){ 
+void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> t){ 
 	map<int,int>::iterator it;
 	map<int,int>::iterator itr;
 	map<int,int>::iterator i;
