@@ -56,7 +56,7 @@ MyAI::MyAI() : Agent()
 	xDest = -1;
 	yDest = -1;
 	startQ = false;
-	
+	goldFound = false;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -98,6 +98,16 @@ Agent::Action MyAI::getAction
 	}
 	
 	if(target){ //setup target route
+		if(goldFound){
+			if(turnCount == 2){
+				turnCount == 0;
+				goldFound = false;
+				return FORWARD;
+			}
+			turnCount++;
+			return TURN_LEFT;
+		}
+	
 		if (turnAround) //turn around and take a step back
 		{
 			if (turnCount == 1)
@@ -122,8 +132,8 @@ Agent::Action MyAI::getAction
 		if (exploreTile.empty())
 		{
 			startQ = false;
-	/*		if(goBack)
-				return CLIMB; */
+			if(goBack)
+				return CLIMB; 
 		}
 		else
 		{
@@ -145,7 +155,7 @@ Agent::Action MyAI::getAction
 		}
 	}
 
-	if (goBack)
+	/*if (goBack)
 	{
 		if (!retrace.empty())
 		{
@@ -158,15 +168,14 @@ Agent::Action MyAI::getAction
 			return CLIMB;
 		}
 	}
-	else
+	else*/
 	{
 		if (glitter)
 		{
 			goBack = true;
-			/*target = true
+			target = true
 			xDest = 0;
 			yDest = 0;
-			*/
 			retrace.push(TURN_LEFT);
 			retrace.push(TURN_LEFT);
 			return (GRAB);
@@ -328,10 +337,10 @@ Agent::Action MyAI::getAction
 
 			if (explore.size() == 0) { 	//how the agent should move
 				goBack = true;
-				/*turnAround = true;  //works when there is a long road
+				turnAround = true;  //works when there is a long road
 				xDest = 0;
 				yDest = 0;
-				target = true;*/
+				target = true;
 				retrace.push(TURN_LEFT);
 				return TURN_LEFT;
 			}
@@ -585,6 +594,7 @@ void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){ //unknown surr
 	}
 	else{
 	 	map <int, int>::iterator itA;
+		map <int, int>::iterator it;
 		for(itA = t.begin(); itA != t.end(); itA++){
 			auto itr = m.find(itA->first);
 					
@@ -592,8 +602,19 @@ void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){ //unknown surr
 				m.insert(pair<int, int> (itA->first, itA->second));
 			}
 			else{
-				if(itr->second != itA->second)
-					m.insert(pair<int, int>(itA->first, itA->second));
+				if(itr->second != itC->second){
+					auto const & itM = m.equal_range(itA->first);
+					bool exists = false;
+					for(it = itM.first; it != itM.second; it++){
+						if(it->second == itA->second){
+							exists = true;
+							break;
+						}
+					}
+					
+					if(!exists)
+						m.insert(pair<int, int>(itA->first, itA->second)); //add point to list if it didn't exist
+				}
 			}
 		}
 	}
@@ -701,6 +722,8 @@ void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, i
 				break;
 			}
 		}
+		if(found)
+			break;
 	}
 	
 	if(found){
@@ -721,6 +744,9 @@ void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, i
 	map<int,int>::iterator itr;
 	map<int,int>::iterator i;
 	
+	int xDel;
+	int yDel;
+	bool found = false;
 	for(it = t.begin(); it != t.end(); it++){
 		auto const& pComp = w.equal_range(it->first);
 		
@@ -728,14 +754,22 @@ void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, i
 			if(itr->second == it->second){
 				w.erase(itr);
 				e.insert(pair<int, int>(it->first, it->second));
-				
-				auto const& pit = p.equal_range(it->first);
-				for(i = pit.first; i != pit.second; i++){
-					if(i->second == it->second){
-						p.erase(i);
-						break;
-					}
-				}
+				xDel = it->first;
+				yDel = it->second; 
+				found = true;
+				break;
+			}
+		}
+		if(found)
+			break;
+	}
+	
+	if(found){
+		auto const& wump = p.equal_range(xDel);
+		for (i = wump.first; i != wump.second; i++) {
+			if (i->second == yDel) {
+				p.erase(i);
+				break;
 			}
 		}
 	}
