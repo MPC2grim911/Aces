@@ -53,6 +53,7 @@ public:
 	int turnCount;
 	bool turnAround;
 	bool startQ;
+	bool goldFound;
 	
 	int xPos; //player position
 	int yPos;
