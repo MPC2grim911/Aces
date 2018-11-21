@@ -176,11 +176,8 @@ Agent::Action MyAI::getAction
 
 			//cout << "first turn move" << endl;
 			moves++;
-			//retrace.push(FORWARD);
 			addGoMap();
 
-			//updatePos();
-			//return FORWARD;
 			Action temp = explore();
 			return temp;
 		}
@@ -202,11 +199,8 @@ Agent::Action MyAI::getAction
 			moves++;
 
 			addGoMap();
-			removeDanger();
-			//retrace.push(FORWARD);
+			//removeDanger();
 
-			//updatePos();
-			//return FORWARD;
 			Action temp = explore();
 			return temp;
 		}
@@ -227,13 +221,21 @@ Agent::Action MyAI::getAction
 			if (bump)
 			{
 				//cout << "Hit wall" << endl;
-				updateBump();
-				//cout << "test1" << endl;
+				//updateBump();
+				if (dir == 1)
+				{
+					y--;
+					yLim = y;
+				}
+				else if (dir == 2)
+				{
+					x--;
+					xLim = x;
+				}
+
 				retrace.push(TURN_RIGHT);
-				//cout << "test2" << endl;
 				moves++;
 				updateLeft();
-			//	cout << "test3" << endl;
 				return TURN_LEFT;
 			}
 
@@ -267,13 +269,22 @@ Agent::Action MyAI::getAction
 			if (bump)
 			{
 				//cout << "Hit wall" << endl;
-				updateBump();
-			//	cout << "test4" << endl;
+				//updateBump();
+				if (dir == 1)
+				{
+					y--;
+					yLim = y;
+				}
+				else if (dir == 2)
+				{
+					x--;
+					xLim = x;
+				}
+
 				retrace.push(TURN_RIGHT);
-			//	cout << "test5" << endl;
+
 				moves++;
 				updateLeft();
-			//	cout << "test6" << endl;
 				return TURN_LEFT;
 			}
 
