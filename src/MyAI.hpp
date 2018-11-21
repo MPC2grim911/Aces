@@ -83,6 +83,11 @@ public:
 	multimap<int, int> wump;
 	
 	//functions to shorten code
+	void turnLeft(int &d);		//directions to keep track of agent
+	void turnRight(int &d);
+	void goForward(int &x, int &y, int d);
+	void turn180(int &d);
+	
 	void checkSafe(int x, int y, multimap<int, int> &s); //checks and adds new tile to safe list
 	void exShorten(int x, int y, multimap<int, int> &e); //takes out current tile from explore list
 	void surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multimap<int, int> &t); //gets list of surrounding unknown tiles
