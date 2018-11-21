@@ -513,7 +513,7 @@ void MyAI::updateBump()
 		{
 			if (it->first > xLim)
 			{
-				goMap.erase(it);
+				it = goMap.erase(it);
 			}
 			else
 			{
@@ -526,7 +526,7 @@ void MyAI::updateBump()
 		{
 			if (it->second > yLim)
 			{
-				goMap.erase(it);
+				it = goMap.erase(it);
 			}
 			else
 			{
