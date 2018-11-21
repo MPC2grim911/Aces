@@ -176,6 +176,25 @@ Agent::Action MyAI::getAction
 			target = true
 			xDest = 0;
 			yDest = 0;
+			goldFound = true;
+			
+			if(dir == 0){
+				dir = 2;
+				x -= 1;
+			}
+			else if(dir == 1){
+				dir = 3;
+				y -= 1;
+			}
+			else if(dir == 2){
+				dir = 0;
+				x += 1;
+			}
+			else if(dir == 3){
+				dir = 1;
+				y += 1;
+			}
+			
 			retrace.push(TURN_LEFT);
 			retrace.push(TURN_LEFT);
 			return (GRAB);
@@ -337,7 +356,7 @@ Agent::Action MyAI::getAction
 
 			if (explore.size() == 0) { 	//how the agent should move
 				goBack = true;
-				turnAround = true;  //works when there is a long road
+				turnAround = true;  
 				xDest = 0;
 				yDest = 0;
 				target = true;
