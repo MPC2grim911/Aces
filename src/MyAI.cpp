@@ -84,14 +84,7 @@ Agent::Action MyAI::getAction
 			return TURN_RIGHT;
 		}
 		
-		if(dir == 0)
-			xPos += 1;
-		if(dir == 1)
-			yPos += 1;
-		if(dir == 2)
-			xPos -= 1;
-		if(dir == 3)
-			yPos -= 1;
+		goForward(xPos, yPos, dir);
 		retrace.push(FORWARD);
 		oneMv = false;
 		return FORWARD;
@@ -124,7 +117,7 @@ Agent::Action MyAI::getAction
 			return TURN_LEFT;
 		}
 		 
-		startQ = goToTarget(xPos, yPos, dir, xLim, yLim, xDest, yDest, safe, exploreTile, startQ);
+		startQ = goToTarget(xPos, yPos, dir, xLim, yLim, xDest, yDest, safe, exploreTile, target);
 	}
 	
 	if (startQ) //result of goToTarget function
@@ -178,22 +171,8 @@ Agent::Action MyAI::getAction
 			yDest = 0;
 			goldFound = true;
 			
-			if(dir == 0){
-				dir = 2;
-				x -= 1;
-			}
-			else if(dir == 1){
-				dir = 3;
-				y -= 1;
-			}
-			else if(dir == 2){
-				dir = 0;
-				x += 1;
-			}
-			else if(dir == 3){
-				dir = 1;
-				y += 1;
-			}
+			turn180(dir);
+			goForward(xPos, yPox, dir);
 			
 			retrace.push(TURN_LEFT);
 			retrace.push(TURN_LEFT);
@@ -290,14 +269,7 @@ Agent::Action MyAI::getAction
 			
 			retrace.push(FORWARD);
 			moves++;
-			if(dir == 0)//player position changes
-				xPos += 1;
-			if(dir == 1)
-				yPos += 1;
-			if(dir == 2)
-				xPos -= 1;
-			if(dir == 3)
-				yPos -= 1;
+			goForward(xPos, yPos, dir);
 			return FORWARD;
 			
 		}
@@ -477,22 +449,8 @@ Agent::Action MyAI::getAction
 				}
 				
 				//else, if the destination is no where near take a step back and search for target 
-				if (dir == 0){ //180 degrees turn
-					dir = 2;
-					xPos -= 1;
-				}
-				else if (dir == 1){
-					dir = 3;
-					yPos -= 1;
-				}
-				else if (dir == 2){
-					dir = 0;
-					xPos += 1;
-				}
-				else if (dir == 3){
-					dir = 1;
-					yPos += 1;
-				}
+				turn180(dir); //180 degree turn
+				goForward(xPos, yPos, dir);
 
 				turnAround = true;
 				return TURN_LEFT;
@@ -512,14 +470,7 @@ Agent::Action MyAI::getAction
 
 			retrace.push(FORWARD);
 			moves++;
-			if (dir == 0)//player position changes
-				xPos += 1;
-			if (dir == 1)
-				yPos += 1;
-			if (dir == 2)
-				xPos -= 1;
-			if (dir == 3)
-				yPos -= 1;
+			goForward(xPos, yPos, dir);
 			return FORWARD;
 		}
 
@@ -537,6 +488,68 @@ Agent::Action MyAI::getAction
 // ======================================================================
 // YOUR CODE BEGINS
 // ======================================================================
+void MyAI::turnLeft(int &d){		//directions to keep track of agent
+	if(d == 0){
+		d = 1;
+	}
+	else if (d == 1){
+		d = 2;
+	}
+	else if(d == 2){
+		d = 3;
+	}
+	else if(d == 3){
+		d = 0;
+	}
+	return;
+}
+void turnRight(int &d){
+	if(d == 0){
+		d = 3;
+	}
+	else if (d == 1){
+		d = 0;
+	}
+	else if(d == 2){
+		d = 1;
+	}
+	else if(d == 3){
+		d = 2;
+	}
+	return;
+}
+void goForward(int &x, int &y, int d){
+	if(d == 0){
+		x++;
+	}
+	else if (d == 1){
+		y++;
+	}
+	else if(d == 2){
+		x--;
+	}
+	else if(d == 3){
+		y--;
+	}
+	return;
+}
+void turn180(int &d){
+	if(d == 0){
+		d = 2;
+	}
+	else if (d == 1){
+		d = 3;
+	}
+	else if(d == 2){
+		d = 0;
+	}
+	else if(d == 3){
+		d = 1;
+	}
+	return;
+}
+
+
 void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position into safe list
 	if(s.size() == 0)
 		s.insert(pair<int, int> (x, y));
