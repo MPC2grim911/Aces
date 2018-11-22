@@ -45,14 +45,13 @@ public:
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
-	stack <Action> retrace;
-	queue <Action> exploreTile;
+	
 	int moves;
 	bool goBack;
 	bool arrowShot;
 	int turnCount;
-	bool turnAround;
-	bool startQ;
+	bool turnHlf;
+	bool travel;
 	bool goldFound;
 	
 	int xPos; //player position
@@ -64,9 +63,11 @@ public:
 	int xLim;
 	int yLim;
 	
+	bool hunt;
 	int xWump; //wumpus position if confirmed
 	int yWump;
-	bool wumpus;
+	bool wumpus; //if wumpus has been killed by arrow
+	bool wFound; 
 	
 	bool target; //variables to determine how to get from point A to B
 	bool oneMv;
@@ -90,7 +91,7 @@ public:
 	
 	void checkSafe(int x, int y, multimap<int, int> &s); //checks and adds new tile to safe list
 	void exShorten(int x, int y, multimap<int, int> &e); //takes out current tile from explore list
-	void surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multimap<int, int> &t); //gets list of surrounding unknown tiles
+	void surTiles(int x, int y, int xL, int yL, bool xW, bool yW, multimap<int, int> &s, multimap<int, int> &t); //gets list of surrounding unknown tiles
 	void addOnly(multimap<int, int> &m, multimap<int, int> &t); //adds new tiles to an existing list
 	void compSelf(multimap<int, int> &m, multimap<int, int> &m2, multimap<int, int> &t); //compares for overlays and adds to known list
 	void exDelSB(multimap<int, int> &e, multimap<int, int> &t); //takes out surrounding tiles from explore if there is breadth or stench
@@ -98,7 +99,7 @@ public:
 	void pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> t); //check if unknown pits conflict with wump list, take out from wump and pit and add to explore accordingly
 	
 	bool getTarget(int x, int y, multimap<int, int> e, int &xD, int &yD, bool &n); //bool to get to target destination
-	bool goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, multimap<int, int> s, queue<Action> &res, bool &targ);
+	Action goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, bool xW, bool yW, multimap<int, int> s);
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
