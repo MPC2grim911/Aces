@@ -34,7 +34,7 @@ MyAI::MyAI() : Agent()
 	goBack = false;
 	moves = 0;
 	arrowShot = false;
-	turnAround = false;
+	turnHlf = false;
 	turnCount = 0;
 	
 	xPos = 0; //player initial position, change if needed
@@ -49,6 +49,8 @@ MyAI::MyAI() : Agent()
 	int xWump = -1; //changed when wumpus is found and confirmed
 	int yWump = -1;
 	wumpus = false;
+	wFound = false;
+	hunt = false;
 	
 	target = false;
 	oneMv = false;
@@ -76,406 +78,348 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	
 	cout << xPos << ", " << yPos << ", " << dir << endl;
+	
+	if (glitter) // if find gold
+	{
+		goBack = true;
+		target = true
+		xDest = 0;
+		yDest = 0;
+		goldFound = true;
+			
+		return (GRAB);
+	}
+	
+	if(scream){
+		wumpus = true;
+		unknownWump.clear();
+	}
+	if (bump){
+			
+		if(dir == 0){ 		
+			if(!xWall){//finds max dimensions of the maze
+				xLim = xPos;
+				xWall = true;
+			}
+			xPos  = xLim; //to cancel out the FORWARD move position change in navigation
+			if(yPos == yLim){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+		else if(dir == 1){
+			if(!yWall){
+				yLim = yPos;
+				yWall = true;
+			}
+			yPos = yLim;
+			if(xPos == 0){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+		else if(dir == 2){
+			xPos = 0;
+			if(yPos == 0){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+		else if(dir == 3){
+			yPos = 0;
+			if(xPos == xLim){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+		turnLeft(dir);
+		return TURN_LEFT;
+	}
 
+	
 	if(oneMv){ //if the explore point is in immediate area, then don't back out
 		if(hlfTurn){
 			hlfTurn = false;
-			retrace.push(TURN_LEFT);
+			turnLeft(dir);
 			return TURN_RIGHT;
 		}
 		
 		goForward(xPos, yPos, dir);
-		retrace.push(FORWARD);
 		oneMv = false;
 		return FORWARD;
 	}
 	
-	if(target){ //setup target route
+	if(hunt){
+		//FIXME: function for going to nearest location near wumpus and shooting wumpus
+	}
+	
+	if(target){ //setup target route and go to target
 		if(goldFound){
 			if(turnCount == 2){
 				turnCount == 0;
 				goldFound = false;
+				goForward(xPos, yPos, dir);
 				return FORWARD;
 			}
 			turnCount++;
+			turnLeft(dir);
 			return TURN_LEFT;
 		}
 	
-		if (turnAround) //turn around and take a step back
+		if (turnHlf) //turn around and take a step back
 		{
 			if (turnCount == 1)
 			{
 				turnCount == 0;
 				turnAround = false;
-				retrace.push(FORWARD);
+				goForward(xPos, yPos, dir);
 				return FORWARD;
 			}
 
 			turnCount++;
-			retrace.push(TURN_LEFT);
-			retrace.push(TURN_LEFT);
+			turnLeft(dir);
 			return TURN_LEFT;
 		}
-		 
-		startQ = goToTarget(xPos, yPos, dir, xLim, yLim, xDest, yDest, safe, exploreTile, target);
+		
+		if(xPos == xDest && yPos == yDest){ //if reached explore destination
+			target = false;
+			travel = false;
+			if((xPos == 0 && yPos == 0) || goBack) //if we are turning back
+				return CLIMB;
+		}
+		if(travel)
+			return goToTarget(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe);
 	}
 	
-	if (startQ) //result of goToTarget function
+
+	if (moves == 0) //first block only
 	{
-		if (exploreTile.empty())
-		{
-			startQ = false;
-			if(goBack)
-				return CLIMB; 
-		}
-		else
-		{
-			Action temp = exploreTile.front();
-			exploreTile.pop();
-			if (temp == TURN_LEFT)
-			{
-				retrace.push(TURN_RIGHT);
-			}
-			else if (temp == TURN_RIGHT)
-			{
-				retrace.push(TURN_LEFT);
-			}
-			else if (temp == FORWARD)
-			{
-				retrace.push(FORWARD);
-			}
-			return temp;
-		}
-	}
-
-	/*if (goBack)
-	{
-		if (!retrace.empty())
-		{
-			Action temp = retrace.top();
-			retrace.pop();
-			return temp;
-		}
-		else
-		{
-			return CLIMB;
-		}
-	}
-	else*/
-	{
-		if (glitter)
-		{
-			goBack = true;
-			target = true
-			xDest = 0;
-			yDest = 0;
-			goldFound = true;
-			
-			turn180(dir);
-			goForward(xPos, yPox, dir);
-			
-			retrace.push(TURN_LEFT);
-			retrace.push(TURN_LEFT);
-			return (GRAB);
-		}
-
-
-		
-		if(scream)
-			wumpus = true;
-
-		if (arrowShot && !wumpus && moves == 1) //we know where the wumpus is if we shoot arrow on first turn and it does not die
+		if (arrowShot && !wumpus) //we know where the wumpus is if we shoot arrow on first turn and it does not die
 		{
 			xWump = 0;
 			yWump = 1;
+			wFound = true;
 		}
 		
-		if (bump)
+		if (stench && breeze)
 		{
-			retrace.pop(); //cancel the FORWARD move in the stack
-			if(dir == 0){ 		
-				if(!xWall){//finds max dimensions of the maze
-					xLim = xPos;
-					xWall = true;
+			return CLIMB;
+		}
+		else if(breeze){
+			return CLIMB;
+		}
+		else if (stench)
+		{
+			arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
+			return SHOOT;
+		}
+		
+		checkSafe(xPos, yPos, safe);//add to save list
+			
+		if (moves != 0)			//take position out of explore list
+			exShorten(xPos, yPos, explore);
+			
+		surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
+			
+		addOnly(explore, testPos);//add test list to explore list
+			
+		testPos.clear();
+		
+		moves++;
+		goForward(xPos, yPos, dir);
+		return FORWARD;		
+	}
+		
+	if (stench || breeze) //if sense a stench or breeze
+	{
+		checkSafe(xPos, yPos, safe); //add current positon to safe list
+		exShorten(xPos, yPos, explore);//remove position from explore list
+
+		surTiles(xPos, yPos, xLim, yLim, xWall, yWall safe, testPos); //get surrounding unknowns
+
+		if (stench && breeze) { //if there is both a stench and breeze
+			compSelf(unknownWump, wump, testPos);//self checking function: if overlays, update wumpus
+			compSelf(unknownPit, pits, testPos);//self checking function: pits version 
+			exDelSB(explore, testPos); //takes out surrounding area from explore list
+		}
+		else if (stench) { //if there is only a stench
+
+			compSelf(unknownWump, wump, testPos);
+			exDelSB(explore, testPos);
+
+			wCheckP(explore, unknownWump, unknownPit, pits, testPos);//check unknown wumpus with known & unknown pits
+		}
+		else if (breeze) { //if there is only a breeze
+
+			compSelf(unknownPit, pits, testPos);
+			exDelSB(explore, testPos);
+
+			if (!wumpus && !wFound)//if wumpus is not dead yet and not found yet
+				pCheckW(explore, unknownPit, unknownWump, testPos);//check unknown pits with unknown wumpus
+		}
+
+		testPos.clear();
+		
+		if(pits.size() != 0)
+			exDelSB(explore, pits); //takes out known pits from explore list
+
+		if (!wumpus && !wFound) {//if wumpus is not dead and not found yet
+			if (unknownWump.size() == 1 || wump.size() == 1) { //if unknownWump list or wump list is size 1
+				map<int, int>::iterator it;
+
+				if (wump.size() == 0) {		//getting wumpus location
+					it = unknownWump.begin();
+					xWump = it->first;
+					yWump = it->second;
 				}
-				xPos  = xLim; //to cancel out the FORWARD move position change in navigation
-				if(yPos == yLim){
-					dir = 3;
-					retrace.push(TURN_LEFT);
+				else {
+					it = wump.begin();
+					xWump = it->first;
+					yWump = it->second;
+				}
+			}
+			unknownWump.clear();
+		}
+		
+		if(wFound){
+			if(explore.size() == 0){ //if nothing left to explore, wumpus hunt if arrow has not been shot
+				if(!arrowShot){
+					hunt = true;
+					turnRight(dir);
 					return TURN_RIGHT;
 				}
-				dir = 1; //left turn directions
 			}
-			else if(dir == 1){
-				if(!yWall){
-					yLim = yPos;
-					yWall = true;
-				}
-				yPos = yLim;
-				if(xPos == 0){
-					dir = 0;
-					retrace.push(TURN_LEFT);
-					return TURN_RIGHT;
-				}
-				dir = 2;
+			else{
+				exShorten(xWump, yWump, explore); //take out wumpus point from explore list
 			}
-			else if(dir == 2){
-				xPos = 0;
-				if(yPos == 0){
-					dir = 1;
-					retrace.push(TURN_LEFT);
-					return TURN_RIGHT;
-				}
-				dir = 3;
-			}
-			else if(dir == 3){
-				yPos = 0;
-				if(xPos == xLim){
-					dir = 2;
-					retrace.push(TURN_LEFT);
-					return TURN_RIGHT;
-				}
-				dir = 0;
-			}
-			retrace.push(TURN_RIGHT);
+		
+		}
+
+
+		if (explore.size() == 0) { 	//how the agent should move
+			goBack = true;
+			turnAround = true;  
+			xDest = 0;
+			yDest = 0;
+			target = true;
+			turnLeft(dir);
 			return TURN_LEFT;
 		}
-
-		//cout << xPos << ", " << yPos << endl << dir << endl;
-
-		if (moves == 0) //first block only
-		{
-			if (breeze)
+		else {
+			bool next = false;
+			target = getTarget(xPos, yPos, explore, xDest, yDest, next); //gets target
+					
+			if (next) //if destination is right next to current tile
 			{
-				return CLIMB;
-			}
-			else if (stench)
-			{
-				moves++;
-				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
-				return SHOOT;
-			}
-			
-			checkSafe(xPos, yPos, safe);//add to save list
-			
-			if (moves != 0)			//take position out of explore list
-				exShorten(xPos, yPos, explore);
-			
-			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
-			
-			addOnly(explore, testPos);//add test list to explore list
-			
-			testPos.clear();
-			
-			retrace.push(FORWARD);
-			moves++;
-			goForward(xPos, yPos, dir);
-			return FORWARD;
-			
-		}
-		
-		if (stench || breeze) //if sense a stench or breeze
-		{
-			checkSafe(xPos, yPos, safe); //add current positon to safe list
-			exShorten(xPos, yPos, explore);//remove position from explore list
-
-			surTiles(xPos, yPos, xLim, yLim, safe, testPos); //get surrounding unknowns
-
-			if (stench && breeze) { //if there is both a stench and breeze
-
-				compSelf(unknownWump, wump, testPos);//self checking function: if overlays, update wumpus
-				compSelf(unknownPit, pits, testPos);//self checking function: pits version 
-				exDelSB(explore, testPos); //takes out surrounding area from explore list
-			}
-			else if (stench) { //if there is only a stench
-
-				compSelf(unknownWump, wump, testPos);
-				exDelSB(explore, testPos);
-
-				wCheckP(explore, unknownWump, unknownPit, pits, testPos);//check unknown wumpus with known & unknown pits
-			}
-			else if (breeze) { //if there is only a breeze
-
-				compSelf(unknownPit, pits, testPos);
-				exDelSB(explore, testPos);
-
-				if (!wumpus)//if wumpus is not dead yet
-					pCheckW(explore, unknownPit, unknownWump, testPos);//check unknown pits with unknown wumpus
-			}
-
-			testPos.clear();
-
-			if (!wumpus) {//if wumpus is not dead
-				if (unknownWump.size() == 1 || wump.size() == 1) { //if unknownWump list or wump list is size 1
-					wumpus = true;
-					map<int, int>::iterator it;
-
-					if (wump.size() == 0) {		//getting wumpus location
-						it = unknownWump.begin();
-						xWump = it->first;
-						yWump = it->second;
-					}
-					else {
-						it = wump.begin();
-						xWump = it->first;
-						yWump = it->second;
-					}
-				}
-				unknownWump.clear();
-				//NEED TO go to a location in line with wumpus and face it
-			}
-
-
-			if (explore.size() == 0) { 	//how the agent should move
-				goBack = true;
-				turnAround = true;  
-				xDest = 0;
-				yDest = 0;
-				target = true;
-				retrace.push(TURN_LEFT);
-				return TURN_LEFT;
-			}
-			else {
-
-				//need to check explore list for nearby tiles to go to
-
-				//if find explore tile next to us, then go to it
-				bool next = false;
-				target = getTarget(xPos, yPos, explore, xDest, yDest, next); //gets target
-						
-				if (next) //if destination is right next to current tile
-				{
-					oneMv = true;
-					if(xPos == xDest){ //if destination is above or below current tile
-						if((yDest - yPos) == 1){
-							if(dir == 0){
-								dir = 1;
-								retrace.push(TURN_RIGHT);
-								return TURN_LEFT;
-							}
-							else if(dir == 1){
-								oneMv = false;
-								yPos++;
-								retrace.push(FORWARD);
-								return FORWARD;
-							}
-							else if(dir == 2){
-								dir = 1;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
-							else if(dir == 3){
-								hlfTurn = true;
-								dir = 1;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
+				oneMv = true;
+				if(xPos == xDest){ //if destination is above or below current tile
+					if((yDest - yPos) == 1){
+						if(dir == 0){
+							turnLeft(dir);
+							return TURN_LEFT;
 						}
-						else{ 
-							if(dir == 0){
-								dir = 3;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
-							else if(dir == 1){
-								hlfTurn = true;
-								dir = 3;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
-							else if(dir == 2){
-								dir = 3;
-								retrace.push(TURN_RIGHT);
-								return TURN_LEFT;
-							}
-							else if(dir == 3){
-								oneMv = false;
-								yPos -= 1;
-								retrace.push(FORWARD);
-								return FORWARD;
-							}
+						else if(dir == 1){
+							oneMv = false;
+							goForward(xPos, yPos, dir);
+							return FORWARD;
+						}
+						else if(dir == 2){
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 3){
+							hlfTurn = true;
+							turnRight(dir);
+							return TURN_RIGHT;
 						}
 					}
-					else if(yPos == yDest){ //if destination is to the left or right of tile
-						if((xDest - xPos) == 1){
-							if(dir == 0){
-								oneMv = false;
-								retrace.push(FORWARD);
-								xPos++;
-								return FORWARD;
-							}
-							else if(dir == 1){
-								dir = 0;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
-							else if(dir == 2){
-								hlfTurn = true;
-								dir = 0;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
-							else if(dir == 3){
-								dir = 0;
-								retrace.push(TURN_LEFT);
-								return TURN_LEFT;
-							}
+					else{ 
+						if(dir == 0){
+							turnRight(dir);
+							return TURN_RIGHT;
 						}
-						else{
-							if(dir == 0){
-								hlfTurn = true;
-								dir = 2;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
-							else if(dir == 1){
-								dir = 2;
-								retrace.push(TURN_RIGHT);
-								return TURN_LEFT;
-							}
-							else if(dir == 2){
-								oneMv = false;
-								xPos -= 1;
-								retrace.push(FORWARD);
-								return FORWARD;
-							}
-							else if(dir == 3){
-								dir = 2;
-								retrace.push(TURN_LEFT);
-								return TURN_RIGHT;
-							}
+						else if(dir == 1){
+							hlfTurn = true;
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 2){
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+						else if(dir == 3){
+							oneMv = false;
+							goForward(xPos, yPos, dir);
+							return FORWARD;
 						}
 					}
 				}
+				else if(yPos == yDest){ //if destination is to the left or right of tile
+					if((xDest - xPos) == 1){
+						if(dir == 0){
+							oneMv = false;
+							goForward(xPos, yPos, dir);
+							return FORWARD;
+						}
+						else if(dir == 1){
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 2){
+							hlfTurn = true;
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 3){
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+					}
+					else{
+						if(dir == 0){
+							hlfTurn = true;
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 1){
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+						else if(dir == 2){
+							oneMv = false;
+							goForward(xPos, yPos, dir);
+							return FORWARD;
+						}
+						else if(dir == 3){
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+					}
+				}
+			}
 				
-				//else, if the destination is no where near take a step back and search for target 
-				turn180(dir); //180 degree turn
-				goForward(xPos, yPos, dir);
-
-				turnAround = true;
-				return TURN_LEFT;
-			}
+			//else, if the destination is no where near take a step back and search for target 
+			travel = true;
+			turnHlf = true;
+			turnLeft(dir);
+			return TURN_LEFT;
 		}
-		else { //for safe tiles
-			checkSafe(xPos, yPos, safe);//add to save list
+	}
+	else { //for safe tiles
+		checkSafe(xPos, yPos, safe);//add to save list
 
-			if (moves != 0)			//take position out of explore list
-				exShorten(xPos, yPos, explore);
+		if (moves != 0)			//take position out of explore list
+			exShorten(xPos, yPos, explore);
 
-			surTiles(xPos, yPos, xLim, yLim, safe, testPos);
+		surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
 
-			addOnly(explore, testPos);//add test list to explore list
+		addOnly(explore, testPos);//add test list to explore list
 
-			testPos.clear();
+		testPos.clear();
 
-			retrace.push(FORWARD);
-			moves++;
-			goForward(xPos, yPos, dir);
-			return FORWARD;
-		}
-
-
-		
+		moves++;
+		goForward(xPos, yPos, dir);
+		return FORWARD;
 	}
 	
 	// ======================================================================
@@ -592,15 +536,27 @@ void MyAI::exShorten(int x, int y, multimap<int, int> &e){ //takes position out 
 	return;
 }
 
-void MyAI::surTiles(int x, int y, int xL, int yL, multimap<int, int> &s, multimap<int, int> &t){
-	
-	if(y != yL)		//get surrounding tiles
-		t.insert(pair<int, int>(x, (y + 1)));
-	if(y != 0)
+void MyAI::surTiles(int x, int y, int xL, int yL, bool xW, bool yW, multimap<int, int> &s, multimap<int, int> &t){
+	//get surrounding tiles
+	if(yW){
+		if((y+1) <= yL)
+			t.insert(pair<int, int>(x, (y + 1)));
+	}
+	else{
+		if(y != yL)		
+			t.insert(pair<int, int>(x, (y + 1)));
+	}
+	if((y-1) >= 0)
 		t.insert(pair<int, int>(x, (y - 1)));
-	if(x != xL)
-		t.insert(pair<int, int>((x + 1), y));
-	if(x != 0)
+	if(xW){
+		if((x+1) < xL)
+			t.insert(pair<int, int>((x + 1), y));
+	}
+	else{
+		if(x != xL)
+			t.insert(pair<int, int>((x + 1), y));
+	}
+	if((x-1) >= 0)
 		t.insert(pair<int, int>((x - 1), y));
 				
 	map <int, int>::iterator surIt;
@@ -832,26 +788,50 @@ bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool&
 	return true;
 }
 
-bool MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, multimap<int, int> s, queue<Action> &res, bool &targ)
+Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, bool xW, bool yW, multimap<int, int> s)
 {					//changed it into an iterative loop, player is on a tile around the destination it goes to it 
 	multimap<int, int> t;
-	if(y != yL)		//get surrounding tiles of current position
-		t.insert(pair<int, int>(x, (y + 1)));
-	if(y != 0)
+	if(yW){
+		if((y+1) <= yL)
+			t.insert(pair<int, int>(x, (y + 1)));
+	}
+	else{
+		if(y != yL)		
+			t.insert(pair<int, int>(x, (y + 1)));
+	}
+	if((y-1) >= 0)
 		t.insert(pair<int, int>(x, (y - 1)));
-	if(x != xL)
-		t.insert(pair<int, int>((x + 1), y));
-	if(x != 0)
+	if(xW){
+		if((x+1) < xL)
+			t.insert(pair<int, int>((x + 1), y));
+	}
+	else{
+		if(x != xL)
+			t.insert(pair<int, int>((x + 1), y));
+	}
+	if((x-1) >= 0)
 		t.insert(pair<int, int>((x - 1), y));
 	
 	multimap<int, int> d;
-	if(yD != yL)		//get surrounding tiles around destination
-		d.insert(pair<int, int>(xD, (yD + 1)));
-	if(yD != 0)
+	if(yW){
+		if((yD+1) <= yL)
+			d.insert(pair<int, int>(xD, (yD + 1)));
+	}
+	else{
+		if(yD != yL)		
+			d.insert(pair<int, int>(xD, (yD + 1)));
+	}
+	if((yD-1) >= 0)
 		d.insert(pair<int, int>(xD, (yD - 1)));
-	if(xD != xL)
-		d.insert(pair<int, int>((xD + 1), yD));
-	if(xD != 0)
+	if(xW){
+		if((xD+1) < xL)
+			d.insert(pair<int, int>((xD + 1), yD));
+	}
+	else{
+		if(xD != xL)
+			d.insert(pair<int, int>((xD + 1), yD));
+	}
+	if((xD-1) >= 0)
 		d.insert(pair<int, int>((xD - 1), yD));
 	
 	map<int, int>::iterator it;
@@ -911,95 +891,79 @@ bool MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, 
 	if(x == nextX){		//changing player position and direction to next tile
 		if((yD - nextY) == 1){
 			if(dir == 0){
-				res.push(TURN_LEFT);
-				res.push(FORWARD);
+				turnLeft(dir);
+				return TURN_LEFT;
 			}
 			else if(dir == 1){
-				res.push(FORWARD);
+				goForward(x, y, dir);
+				return FORWARD;
 			}
 			else if(dir == 2){
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
 			else if(dir == 3){
-				res.push(TURN_RIGHT);
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
-			dir = 1;
-			y += 1;
 		}
 		else if((yD - nextY) == -1){
 			if(dir == 0){
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
 			else if(dir == 1){
-				res.push(TURN_RIGHT);
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);	
+				turnRight(dir);
+				return TURN_RIGHT;	
 			}
 			else if(dir == 2){
-				res.push(TURN_LEFT);
-				res.push(FORWARD);
+				turnLeft(dir);
+				return TURN_LEFT;
 			}
 			else if(dir == 3){
-				res.push(FORWARD);
+				goForward(x, y, dir);
+				return FORWARD;
 			}	
-			dir = 3;
-			y -= 1;
 		}
 	}
 	else if(y == nextY){
 		if((xD - nextX) == 1){
 			if(dir == 0){
-				res.push(FORWARD);
+				goForward(x, y, dir);
+				return FORWARD;
 			}
 			else if(dir == 1){
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
 			else if(dir == 2){
-				res.push(TURN_RIGHT);
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
 			else if(dir == 3){
-				res.push(TURN_LEFT);
-				res.push(FORWARD);
+				turnLeft(dir);
+				return TURN_LEFT;
 			}
-			
-			dir = 0;
-			x += 1;
 		}
 		else if((xD - nextX) == -1){
 			if(dir == 0){
-				res.push(TURN_RIGHT);
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
 			else if(dir == 1){
-				res.push(TURN_LEFT);
-				res.push(FORWARD);
+				turnLeft(dir);
+				return TURN_LEFT;
 			}
 			else if(dir == 2){
-				res.push(FORWARD);
+				goForward(x, y, dir);
+				return FORWARD;
 			}
 			else if(dir == 3){
-				res.push(TURN_RIGHT);
-				res.push(FORWARD);
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
-		
-			dir = 2;
-			x -= 1;
 		}
 	}
-	
-	if((nextX == xD) and (nextY == yD)){ //if the next move is to destination
-		targ = false;
-		return true;
-	}
-	return false;
 }
 
 // ======================================================================
