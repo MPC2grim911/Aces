@@ -194,24 +194,24 @@ Agent::Action MyAI::getAction
 
 	if (moves == 0) //first block only
 	{
-		if (arrowShot && !wumpus) //we know where the wumpus is if we shoot arrow on first turn and it does not die
-		{
-			xWump = 0;
-			yWump = 1;
-			wFound = true;
-		}
 		
-		if (stench && breeze)
-		{
-			return CLIMB;
-		}
-		else if(breeze){
+		
+		if(breeze){
 			return CLIMB;
 		}
 		else if (stench)
 		{
-			arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
-			return SHOOT;
+			if(!arrowShot){
+				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
+				return SHOOT;
+			}
+			xWump = 0; //if fails to hit wumpus
+			yWump = 1;
+			wFound = true;
+			safe.insert(pair<int, int>(0,0));
+			move++;
+			goForward(xPos, yPos, dir);
+			return FORWARD;
 		}
 		
 		checkSafe(xPos, yPos, safe);//add to save list
@@ -282,17 +282,12 @@ Agent::Action MyAI::getAction
 		}
 		
 		if(wFound){
-			if(explore.size() == 0){ //if nothing left to explore, wumpus hunt if arrow has not been shot
-				if(!arrowShot){
-					hunt = true;
-					turnRight(dir);
-					return TURN_RIGHT;
-				}
+			exShorten(xWump, yWump, explore); //take out wumpus point from explore list
+			if(explore.size() == 0 && !arrowShot){ //if nothing left to explore, wumpus hunt if arrow has not been shot
+				hunt = true;
+				turnRight(dir);
+				return TURN_RIGHT;
 			}
-			else{
-				exShorten(xWump, yWump, explore); //take out wumpus point from explore list
-			}
-		
 		}
 
 
@@ -812,27 +807,6 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 	if((x-1) >= 0)
 		t.insert(pair<int, int>((x - 1), y));
 	
-	multimap<int, int> d;
-	if(yW){
-		if((yD+1) <= yL)
-			d.insert(pair<int, int>(xD, (yD + 1)));
-	}
-	else{
-		if(yD != yL)		
-			d.insert(pair<int, int>(xD, (yD + 1)));
-	}
-	if((yD-1) >= 0)
-		d.insert(pair<int, int>(xD, (yD - 1)));
-	if(xW){
-		if((xD+1) < xL)
-			d.insert(pair<int, int>((xD + 1), yD));
-	}
-	else{
-		if(xD != xL)
-			d.insert(pair<int, int>((xD + 1), yD));
-	}
-	if((xD-1) >= 0)
-		d.insert(pair<int, int>((xD - 1), yD));
 	
 	map<int, int>::iterator it;
 	map<int, int>::iterator itr;	
@@ -861,21 +835,13 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 	}
 	t.clear();
 	t.insert(tPath.begin(), tPath.end());
+	tPath.clear();
 	
 	int nextX = xD;
 	int nextY = yD;
-	bool far = true;
-	
-	auto const& nearD = d.equal_range(x); 	//check if current position is right next to destination
-	for(it = nearD.first; it != nearD.second; it++){
-		if(it->second == y){
-			far = false;
-			break;
-		}
-	}
-	
-	if(far){			//if current position is far from destination, go to next closest tile
-		int dist = 1000;
+				//if current position is far from destination, go to next closest tile
+	int dist = abs(xD - x) + abs(yD - y);
+	if(dist != 1){
 		for(it = t.begin(); it != t.end(); it++){
 			int d = abs(xD - it->first) + abs(yD - it->second);
 			
@@ -889,7 +855,7 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 
 	
 	if(x == nextX){		//changing player position and direction to next tile
-		if((yD - nextY) == 1){
+		if((nextY- y) == 1){
 			if(dir == 0){
 				turnLeft(dir);
 				return TURN_LEFT;
@@ -907,7 +873,7 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 				return TURN_RIGHT;
 			}
 		}
-		else if((yD - nextY) == -1){
+		else if((nextY - y) == -1){
 			if(dir == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
@@ -927,7 +893,7 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 		}
 	}
 	else if(y == nextY){
-		if((xD - nextX) == 1){
+		if((nextX -x) == 1){
 			if(dir == 0){
 				goForward(x, y, dir);
 				return FORWARD;
@@ -945,7 +911,7 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 				return TURN_LEFT;
 			}
 		}
-		else if((xD - nextX) == -1){
+		else if((nextX-x) == -1){
 			if(dir == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
