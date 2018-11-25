@@ -99,7 +99,10 @@ public:
 	void pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> t); //check if unknown pits conflict with wump list, take out from wump and pit and add to explore accordingly
 	
 	bool getTarget(int x, int y, multimap<int, int> e, int &xD, int &yD, bool &n); //bool to get to target destination
-	Action goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, bool xW, bool yW, multimap<int, int> s);
+	Action goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, bool xW, bool yW, multimap<int, int> s); //goes to set target destination
+	
+	void wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool xW, bool yW, multimap<int, int> s, multimap<int, int> &e, int xWump, int yWump); //sets a target destination from safe to explore
+	Action wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, bool yW, multimap<int, int> s, int xWump, int yWump, bool &a); //goes to a location to kill wumpus
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
