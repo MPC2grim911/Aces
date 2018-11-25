@@ -441,7 +441,85 @@ Agent::Action MyAI::getAction
 		addOnly(explore, testPos);//add test list to explore list
 
 		testPos.clear();
+		
+		if(xPos == 0){
+			if(yPos == 0){
+				if(dir == 2){
+					turnRight(dir);
+					return TURN_RIGHT;
+				}
+				else if(dir == 3){
+					turnLeft(dir);
+					return TURN_LEFT;
+				}
+			}
+			if(yWall){
+				if(yPos == (yLim - 1)){
+					if(dir == 1){
+						turnRight(dir);
+						return TURN_RIGHT;
+					}
+					else if(dir == 2){
+						turnLeft(dir);
+						return TURN_LEFT;
+					}
+				}
+			}
+			
+			if(dir == 2){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+		
+		if(xWall){
+			if(xPos == (xLim - 1)){
+				if(yPos == 0){
+					if(dir == 3){
+						turnRight(dir);
+						return TURN_RIGHT;
+					}
+					else if(dir == 0){
+						turnLeft(dir);
+						return TURN_LEFT;
+					}
+				}
+				if(yWall){
+					if(yPos == (yLim - 1)){
+						if(dir == 0){
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 1){
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+					}
+				}
 
+				if(dir == 0){
+					turnLeft(dir);
+					return TURN_LEFT;
+				}
+			}
+		}
+		
+		if(yPos == 0){
+			if(dir == 3){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+		}
+		
+		if(yWall){
+			if(yPos == (yLim - 1)){
+				if(dir == 1){
+					turnRight(dir);
+					return TURN_RIGHT;
+				}
+			}
+		}
+		
 		moves++;
 		goForward(xPos, yPos, dir);
 		return FORWARD;
@@ -790,12 +868,60 @@ void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, i
 	return;
 }
 
-bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool& n){
+bool MyAI::getTarget(int x, int y, int dir, multimap<int, int> e, int& xD, int& yD, bool& n){
 	
 	map<int, int>::iterator itT;
 
 	int dist = 1000;
+	
+	if(dir == 1 || dir == 3){
+		auto xFind = e.find(x);
+		if(xFind != e.end()){
+			auto const & xRange = e.equal_range(x);
+			for(itT = xRange.first; itT != xRange.second; itT++){
+				int d = abs(itT->first - x) + abs(itT->second -y);
+
+				if(d < dist){
+					xD = itT->first;
+					yD = itT->second;
+					dist = d;
+				}
+			}
+			
+			if(dist == 1){
+				n = true;  
+				return false;
+			}
+			return true;
+		}
+	}
+	if(dir == 0 || dir == 2){
+	
+		multimap<int, int> yRange;
 		
+		for(itT = e.begin(); itT != e.end(); itT++){
+			if(itT->second == y)
+				yRange.insert(pair<int, int>(itT->first, itT->second));
+		}
+		if(yRange.size() != 0){
+			for(itT = yRange.begin(); itT != yRange.end(); itT++){
+				int d = abs(itT->first - x) + abs(itT->second -y);
+
+				if(d < dist){
+					xD = itT->first;
+					yD = itT->second;
+					dist = d;
+				}
+			}
+
+			if(dist == 1){
+				n = true;  
+				return false;
+			}
+			return true;
+		}
+	}
+	
 	for(itT = e.begin(); itT != e.end(); itT++){
 		int d = abs(itT->first - x) + abs(itT->second -y);
 		
