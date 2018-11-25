@@ -102,7 +102,7 @@ Agent::Action MyAI::getAction
 				xLim = xPos;
 				xWall = true;
 			}
-			xPos  = xLim; //to cancel out the FORWARD move position change in navigation
+			xPos  = xLim - 1; //to cancel out the FORWARD move position change in navigation
 			if(yPos == yLim){
 				turnRight(dir);
 				return TURN_RIGHT;
@@ -113,7 +113,7 @@ Agent::Action MyAI::getAction
 				yLim = yPos;
 				yWall = true;
 			}
-			yPos = yLim;
+			yPos = yLim - 1;
 			if(xPos == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
