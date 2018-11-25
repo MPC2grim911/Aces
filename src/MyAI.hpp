@@ -63,7 +63,8 @@ public:
 	int xLim;
 	int yLim;
 	
-	bool hunt;
+	bool hunt; //for hunting wumpus
+	bool wHunt;
 	int xWump; //wumpus position if confirmed
 	int yWump;
 	bool wumpus; //if wumpus has been killed by arrow
