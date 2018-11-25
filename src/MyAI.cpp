@@ -82,7 +82,8 @@ Agent::Action MyAI::getAction
 	if (glitter) // if find gold
 	{
 		goBack = true;
-		target = true
+		target = true;
+		travel = true;
 		xDest = 0;
 		yDest = 0;
 		goldFound = true;
