@@ -51,13 +51,13 @@ MyAI::MyAI() : Agent()
 	wumpus = false;
 	wFound = false;
 	hunt = false;
+	wHunt = false;
 	
 	target = false;
 	oneMv = false;
 	hlfTurn = false;
 	xDest = -1;
 	yDest = -1;
-	startQ = false;
 	goldFound = false;
 	// ======================================================================
 	// YOUR CODE ENDS
@@ -149,8 +149,26 @@ Agent::Action MyAI::getAction
 		return FORWARD;
 	}
 	
-	if(hunt){
-		//FIXME: function for going to nearest location near wumpus and shooting wumpus
+	if(hunt){ //function for going to nearest location near wumpus and shooting wumpus
+	
+		if(arrowShot){
+			hunt = false;
+			wHunt = false;
+			target = true; //FIXME: Agent goes into a loop after killing wumpus for some reason
+			travel = true;
+			
+			if(wumpus){//sets a target destination from safe to explore
+				wumpExp(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe, explore, xWump, yWump); 
+			}
+			else if(!wumpus){
+				goBack = true;
+				xDest = 0;
+				yDest = 0;
+			}
+		}
+		
+		if(wHunt) //goes to a location to kill wumpus
+			return wumpHunt(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe, xWump, yWump, arrowShot); 
 	}
 	
 	if(target){ //setup target route and go to target
@@ -194,8 +212,6 @@ Agent::Action MyAI::getAction
 
 	if (moves == 0) //first block only
 	{
-		
-		
 		if(breeze){
 			return CLIMB;
 		}
@@ -205,9 +221,14 @@ Agent::Action MyAI::getAction
 				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
 				return SHOOT;
 			}
-			xWump = 0; //if fails to hit wumpus
-			yWump = 1;
-			wFound = true;
+			if(!wumpus){
+				xWump = 0; //if fails to hit wumpus
+				yWump = 1;
+				wFound = true;
+			}
+			else{
+				explore.insert(pair<int, int> (0, 1));
+			}
 			safe.insert(pair<int, int>(0,0));
 			move++;
 			goForward(xPos, yPos, dir);
@@ -238,16 +259,20 @@ Agent::Action MyAI::getAction
 		surTiles(xPos, yPos, xLim, yLim, xWall, yWall safe, testPos); //get surrounding unknowns
 
 		if (stench && breeze) { //if there is both a stench and breeze
-			compSelf(unknownWump, wump, testPos);//self checking function: if overlays, update wumpus
+			if(!wumpus)
+				compSelf(unknownWump, wump, testPos);//self checking function: if overlays, update wumpus
 			compSelf(unknownPit, pits, testPos);//self checking function: pits version 
 			exDelSB(explore, testPos); //takes out surrounding area from explore list
 		}
 		else if (stench) { //if there is only a stench
+			if(!wumpus){
+				compSelf(unknownWump, wump, testPos);
+				exDelSB(explore, testPos);
 
-			compSelf(unknownWump, wump, testPos);
-			exDelSB(explore, testPos);
-
-			wCheckP(explore, unknownWump, unknownPit, pits, testPos);//check unknown wumpus with known & unknown pits
+				wCheckP(explore, unknownWump, unknownPit, pits, testPos);//check unknown wumpus with known & unknown pits
+			}
+			if(wumpus)
+				addOnly(explore, testPos); //if wumpus is dead, add unknowns into explore
 		}
 		else if (breeze) { //if there is only a breeze
 
@@ -282,9 +307,11 @@ Agent::Action MyAI::getAction
 		}
 		
 		if(wFound){
-			exShorten(xWump, yWump, explore); //take out wumpus point from explore list
+			if(!wumpus)
+				exShorten(xWump, yWump, explore); //take out wumpus point from explore list
 			if(explore.size() == 0 && !arrowShot){ //if nothing left to explore, wumpus hunt if arrow has not been shot
 				hunt = true;
+				wHunt = true;
 				turnRight(dir);
 				return TURN_RIGHT;
 			}
@@ -931,7 +958,321 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 		}
 	}
 }
+void MyAI::wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool xW, bool yW, multimap<int, int> s, multimap<int, int> &e, int xWump, int yWump){ //sets a target destination from safe to explore
+	map<int, int>::iterator it;
+	map<int, int>::iterator i;
+	
+	multimap<int, int> w; //get surrounding tiles of wumpus
+	if(yW){
+		if((yWump+1) <= yL)
+			w.insert(pair<int, int>(xWump, (yWump + 1)));
+	}
+	else{
+		if(yWump != yL)		
+			w.insert(pair<int, int>(xWump, (yWump + 1)));
+	}
+	if((yWump-1) >= 0)
+		w.insert(pair<int, int>(xWump, (yWump - 1)));
+	if(xW){
+		if((xWump+1) < xL)
+			w.insert(pair<int, int>((xWump + 1), yWump));
+	}
+	else{
+		if(xWump != xL)
+			w.insert(pair<int, int>((xWump + 1), yWump));
+	}
+	if((xWump-1) >= 0)
+		w.insert(pair<int, int>((xWump - 1), yWump));
+	
+	
+	multimap<int, int> wPath;
+	for (it = w.begin(); it != w.end(); it++) //take out surrounding tiles that are not in the safe list
+	{
+		auto const & tPaths = s.equal_range(it->first);
+		bool inSafe = false;
+		int xPath;
+		int yPath;
+		
+		for(itr = wPaths.first; itr != wPaths.second; itr++){
+			if (it->second == itr->second)
+			{
+				inSafe = true;
+				xPath = it->first;
+				yPath = it->second;
+				break;
+			}
+		}
+		
+		if(inSafe){
+			wPath.insert(pair<int,int>(xPath, yPath));	
+		}
+	}
+	w.clear();
+	w.insert(tPath.begin(), tPath.end());
+	wPath.clear();
+	
+				
+	int dist = 1000;
+	
+	for(it = w.begin(); it != w.end(); it++){ //set the safe tiles into explore and set closest tile to destination
+		e.insert(pair<int, int> (it->first, it->second);
+		int d = abs(it->first - x) + abs(it->second - y);
+		if(d < dist){
+			dist = d;
+			xD = it->first;
+			xY = it->second;
+		}
+	}
+	return;	
+}
+Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, bool yW, multimap<int, int> s, int xWump, int yWump, bool &a){ 
+	//goes to closest location to kill wumpus
+	
+	if(x == xWump){		//changing player direction to shoot wumpus
+		if((yWump- y) >= 1){
+			if(dir == 0){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 1){
+				a = true;
+				return SHOOT;
+			}
+			else if(dir == 2){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 3){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+		}
+		else if((yWump - y) <= -1){
+			if(dir == 0){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 1){
+				turnLeft(dir);
+				return TURN_LEFT;	
+			}
+			else if(dir == 2){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 3){
+				a = true;
+				return SHOOT;
+			}	
+		}
+	}
+	else if(y == nextY){
+		if((nextX -x) >= 1){
+			if(dir == 0){
+				a = true;
+				return SHOOT;
+			}
+			else if(dir == 1){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 2){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 3){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+		}
+		else if((nextX-x) <= -1){
+			if(dir == 0){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 1){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 2){
+				a = true;
+				return SHOOT;
+			}
+			else if(dir == 3){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+	}
+	
+	multimap<int, int> t; //get surrounding positions
+	if(yW){
+		if((y+1) <= yL)
+			t.insert(pair<int, int>(x, (y + 1)));
+	}
+	else{
+		if(y != yL)		
+			t.insert(pair<int, int>(x, (y + 1)));
+	}
+	if((y-1) >= 0)
+		t.insert(pair<int, int>(x, (y - 1)));
+	if(xW){
+		if((x+1) < xL)
+			t.insert(pair<int, int>((x + 1), y));
+	}
+	else{
+		if(x != xL)
+			t.insert(pair<int, int>((x + 1), y));
+	}
+	if((x-1) >= 0)
+		t.insert(pair<int, int>((x - 1), y));
+	
+	
+	map<int, int>::iterator it;
+	map<int, int>::iterator itr;	
 
+	multimap<int, int> tPath;
+	for (it = t.begin(); it != t.end(); it++) //take out surrounding tiles that are not in the safe list
+	{
+		auto const & tPaths = s.equal_range(it->first);
+		bool inSafe = false;
+		int xPath;
+		int yPath;
+		
+		for(itr = tPaths.first; itr != tPaths.second; itr++){
+			if (it->second == itr->second)
+			{
+				inSafe = true;
+				xPath = it->first;
+				yPath = it->second;
+				break;
+			}
+		}
+		
+		if(inSafe){
+			tPath.insert(pair<int,int>(xPath, yPath));	
+		}
+	}
+	t.clear();
+	t.insert(tPath.begin(), tPath.end());
+	tPath.clear();
+	
+	int dist = 1000;
+	int nextX;
+	int nextY;
+	
+	auto xLine = s.find(xWump); //find the closest safe location in line to wump at x key
+	if(xLine != s.end()){
+		for(it = t.begin(); it != t.end(); it++){
+			int d = abs(it->first -xWump);
+			
+			if(d < dist){
+				dist = d;
+				nextX = it->first;
+				nextY = it->second;
+				break;
+			}
+		}
+	}
+	
+	multimap<int, int> yRange; //if no x points available, or if there is a y point closer to current position
+	for(it = s.begin(); it != s.end(); it++){
+		if(it->second == yWump)
+			yRange.insert(pair<int, int>(it->first, it->second));
+	}
+	if(yRange.size() != 0){
+		for(it = t.begin(); it != t.end(); it++){
+			auto const &yLine = yRange.equal_range(it->first);
+			
+			for(i = yLine.first; i != yLine.second; i++){
+				int d = abs(it->second- yWump);
+				if(d < dist){
+					dist = d;
+					nextX = it->first;
+					nextY = it->second;
+				}
+			}
+		}
+	}
+	
+	
+	if(x == nextX){		//changing player position and direction to next, closest tile
+		if((nextY- y) == 1){
+			if(dir == 0){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 1){
+				goForward(x, y, dir);
+				return FORWARD;
+			}
+			else if(dir == 2){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 3){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+		else if((nextY - y) == -1){
+			if(dir == 0){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 1){
+				turnRight(dir);
+				return TURN_RIGHT;	
+			}
+			else if(dir == 2){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 3){
+				goForward(x, y, dir);
+				return FORWARD;
+			}	
+		}
+	}
+	else if(y == nextY){
+		if((nextX -x) == 1){
+			if(dir == 0){
+				goForward(x, y, dir);
+				return FORWARD;
+			}
+			else if(dir == 1){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 2){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 3){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+		}
+		else if((nextX-x) == -1){
+			if(dir == 0){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+			else if(dir == 1){
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else if(dir == 2){
+				goForward(x, y, dir);
+				return FORWARD;
+			}
+			else if(dir == 3){
+				turnRight(dir);
+				return TURN_RIGHT;
+			}
+		}
+	}
+}
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================
