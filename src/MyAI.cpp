@@ -325,6 +325,7 @@ Agent::Action MyAI::getAction
 			xDest = 0;
 			yDest = 0;
 			target = true;
+			travel = true;
 			turnLeft(dir);
 			return TURN_LEFT;
 		}
