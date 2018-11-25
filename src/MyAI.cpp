@@ -202,11 +202,12 @@ Agent::Action MyAI::getAction
 		if(xPos == xDest && yPos == yDest){ //if reached explore destination
 			target = false;
 			travel = false;
+			prev.clear();
 			if((xPos == 0 && yPos == 0) || goBack) //if we are turning back
 				return CLIMB;
 		}
 		if(travel)
-			return goToTarget(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe);
+			return goToTarget(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe, prev);
 	}
 	
 
@@ -810,7 +811,7 @@ bool MyAI::getTarget(int x, int y, multimap<int, int> e, int& xD, int& yD, bool&
 	return true;
 }
 
-Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, bool xW, bool yW, multimap<int, int> s)
+Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, bool xW, bool yW, multimap<int, int> s, multimap<int, int> &pv)
 {					//changed it into an iterative loop, player is on a tile around the destination it goes to it 
 	multimap<int, int> t;
 	if(yW){
@@ -834,6 +835,8 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 	if((x-1) >= 0)
 		t.insert(pair<int, int>((x - 1), y));
 	
+	exDelSB(t, pv); //to prevent loops
+	pv.insert(pair<int, int>(x, y));
 	
 	map<int, int>::iterator it;
 	map<int, int>::iterator itr;	
