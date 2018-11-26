@@ -643,7 +643,7 @@ void MyAI::exShorten(int x, int y, multimap<int, int> &e){ //takes position out 
 void MyAI::surTiles(int x, int y, int xL, int yL, bool xW, bool yW, multimap<int, int> &s, multimap<int, int> &t){
 	//get surrounding tiles
 	if(yW){
-		if((y+1) <= yL)
+		if((y+1) < yL)
 			t.insert(pair<int, int>(x, (y + 1)));
 	}
 	else{
@@ -944,7 +944,7 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 {					//changed it into an iterative loop, player is on a tile around the destination it goes to it 
 	multimap<int, int> t;
 	if(yW){
-		if((y+1) <= yL)
+		if((y+1) < yL)
 			t.insert(pair<int, int>(x, (y + 1)));
 	}
 	else{
@@ -1096,7 +1096,7 @@ void MyAI::wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool
 	
 	multimap<int, int> w; //get surrounding tiles of wumpus
 	if(yW){
-		if((yWump+1) <= yL)
+		if((yWump+1) < yL)
 			w.insert(pair<int, int>(xWump, (yWump + 1)));
 	}
 	else{
@@ -1239,7 +1239,7 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 	
 	multimap<int, int> t; //get surrounding positions
 	if(yW){
-		if((y+1) <= yL)
+		if((y+1) < yL)
 			t.insert(pair<int, int>(x, (y + 1)));
 	}
 	else{
