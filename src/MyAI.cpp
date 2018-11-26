@@ -54,6 +54,7 @@ MyAI::MyAI() : Agent()
 	wHunt = false;
 	
 	target = false;
+	travel = false;
 	oneMv = false;
 	hlfTurn = false;
 	xDest = -1;
