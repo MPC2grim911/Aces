@@ -95,6 +95,8 @@ public:
 	void exShorten(int x, int y, multimap<int, int> &e); //takes out current tile from explore list
 	void surTiles(int x, int y, int xL, int yL, bool xW, bool yW, multimap<int, int> &s, multimap<int, int> &t); //gets list of surrounding unknown tiles
 	void addOnly(multimap<int, int> &m, multimap<int, int> &t); //adds new tiles to an existing list
+	void bumpClear(int x, int y, int &xD, int &yD, int xL, int yL, bool xW, bool yW, mulitmap<int, int> &e); //clears out tiles from explore that exceed boundaries 
+	
 	void compSelf(multimap<int, int> &m, multimap<int, int> &m2, multimap<int, int> &t); //compares for overlays and adds to known list
 	void exDelSB(multimap<int, int> &e, multimap<int, int> &t); //takes out surrounding tiles from explore if there is breadth or stench
 	void wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> t); //check if testPos of wump conflicts with any pit lists, take out from wump and pit and add to explore accordingly
