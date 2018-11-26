@@ -21,10 +21,9 @@
 #include <iostream>
 #include <stack>
 #include <map>
-#include <iterator>
+#include <queue>
 
 using namespace std;
-
 
 MyAI::MyAI() : Agent()
 {
@@ -36,30 +35,33 @@ MyAI::MyAI() : Agent()
 	arrowShot = false;
 	turnHlf = false;
 	turnCount = 0;
-	
-	xPos = 0; //player initial position, change if needed
-	yPos = 0;
-	dir = 0; //0 is E, 1 is N, 2 is W, 3 is S at the moment
-	
-	xWall = false; // true when bump into wall and establishes limits
-	yWall = false;
-	xLim = -1; //changed when bump
-	yLim = -1;
-	
-	int xWump = -1; //changed when wumpus is found and confirmed
-	int yWump = -1;
-	wumpus = false;
-	wFound = false;
 	hunt = false;
 	wHunt = false;
+
+	travel = false;
+	goldFound = false;
+	
+	xPos = 0; //player initial position
+	yPos = 0;
+	dir = 0; //0 is E, 1 is N, 2 is W, 3 is S
+
+	xWall = false; //true when bump into wall
+	yWall = false;
+	xLim = -1; //changed when bump into wall
+	yLim = -1;	
+
+	xWump = -1; //changed when find wumpus
+	yWump = -1;
+	wumpus = false;
+	wFound = false;
 	
 	target = false;
-	travel = false;
 	oneMv = false;
 	hlfTurn = false;
-	xDest = -1;
+	xDest = -1; 
 	yDest = -1;
-	goldFound = false;
+
+	
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
@@ -77,37 +79,62 @@ Agent::Action MyAI::getAction
 	// ======================================================================
 	// YOUR CODE BEGINS
 	// ======================================================================
+
+/**/	cout << endl << "Player: " << xPos << ", " << yPos << "\t" << dir << endl;
 	
-	cout << xPos << ", " << yPos << ", " << dir << endl;
+	if(oneMv){
+		if(hlfTurn){
+			hlfTurn = false;
+			turnRight(dir);
+			return TURN_RIGHT;
+		}
+		
+		goForward(xPos, yPos, dir);
 	
-	if (glitter) // if find gold
+		oneMv = false;
+					
+		return FORWARD;
+	}
+	 
+	if(glitter)
 	{
+/**/		cout << "Found gold" << endl;
 		goBack = true;
 		target = true;
 		travel = true;
 		xDest = 0;
 		yDest = 0;
-		goldFound = true;
-			
+		goldFound = true;	
+		
 		return (GRAB);
 	}
 	
 	if(scream){
+/**/		cout << "wumpus is dead" << endl;
 		wumpus = true;
 		unknownWump.clear();
 	}
-	if (bump){
-			
-		if(dir == 0){ 		
-			if(!xWall){//finds max dimensions of the maze
+
+	if(bump)
+	{
+/**/		cout << "Hit wall" << endl;		
+		if(dir == 0){
+			if(!xWall){
 				xLim = xPos;
 				xWall = true;
 			}
-			xPos  = xLim - 1; //to cancel out the FORWARD move position change in navigation
+			xPos = xLim -1;
+			/*if(target){
+				xDest = xPos;
+				yDest = yPos;
+				
+			}*/
+			bumpClear(xPos, yPos, xDest, yDest, xLim, yLim, xWall, yWall, explore);	
 			if(yPos == yLim){
 				turnRight(dir);
-				return TURN_RIGHT;
+				return TURN_RIGHT;					
 			}
+		
 		}
 		else if(dir == 1){
 			if(!yWall){
@@ -115,13 +142,16 @@ Agent::Action MyAI::getAction
 				yWall = true;
 			}
 			yPos = yLim - 1;
+			bumpClear(xPos, yPos, xDest, yDest, xLim, yLim, xWall, yWall, explore);	
 			if(xPos == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
 			}
+			
 		}
 		else if(dir == 2){
 			xPos = 0;
+			bumpClear(xPos, yPos, xDest, yDest, xLim, yLim, xWall, yWall, explore);	
 			if(yPos == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
@@ -129,54 +159,45 @@ Agent::Action MyAI::getAction
 		}
 		else if(dir == 3){
 			yPos = 0;
+			bumpClear(xPos, yPos, xDest, yDest, xLim, yLim, xWall, yWall, explore);	
 			if(xPos == xLim){
 				turnRight(dir);
 				return TURN_RIGHT;
 			}
+			
 		}
+
 		turnLeft(dir);
 		return TURN_LEFT;
 	}
 
-	
-	if(oneMv){ //if the explore point is in immediate area, then don't back out
-		if(hlfTurn){
-			hlfTurn = false;
-			turnLeft(dir);
-			return TURN_RIGHT;
-		}
-		
-		goForward(xPos, yPos, dir);
-		oneMv = false;
-		return FORWARD;
-	}
-	
-	if(hunt){ //function for going to nearest location near wumpus and shooting wumpus
-	
+	if(hunt){ //fill this in with hunt function
 		if(arrowShot){
 			hunt = false;
 			wHunt = false;
-			target = true; //FIXME: Agent goes into a loop after killing wumpus for some reason
-			travel = true;
-			
-			if(wumpus){//sets a target destination from safe to explore
-				wumpExp(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe, explore, xWump, yWump); 
+			target = true;
+			travel = true;	
+			if(wumpus){
+				wumpExp(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe, explore, xWump, yWump);	
+				cout << "Next Destination: " << xDest << ", " << yDest << endl;
 			}
 			else if(!wumpus){
 				goBack = true;
 				xDest = 0;
 				yDest = 0;
 			}
+			
 		}
 		
-		if(wHunt) //goes to a location to kill wumpus
-			return wumpHunt(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe, xWump, yWump, arrowShot); 
+		if(wHunt)		
+			return wumpHunt(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe, xWump, yWump, arrowShot);
 	}
 	
-	if(target){ //setup target route and go to target
+	if(target){
+//		cout << "entered targeting system " << endl;
 		if(goldFound){
 			if(turnCount == 2){
-				turnCount == 0;
+				turnCount = 0;
 				goldFound = false;
 				goForward(xPos, yPos, dir);
 				return FORWARD;
@@ -184,162 +205,355 @@ Agent::Action MyAI::getAction
 			turnCount++;
 			turnLeft(dir);
 			return TURN_LEFT;
+		
 		}
-	
-		if (turnHlf) //turn around and take a step back
-		{
-			if (turnCount == 1)
-			{
-				turnCount == 0;
-				turnAround = false;
+
+		if(turnHlf){
+			if(turnCount == 1){
+				turnCount = 0;
+				turnHlf = false;
 				goForward(xPos, yPos, dir);
 				return FORWARD;
 			}
-
+		
 			turnCount++;
 			turnLeft(dir);
 			return TURN_LEFT;
 		}
-		
-		if(xPos == xDest && yPos == yDest){ //if reached explore destination
+
+		if(xPos == xDest && yPos == yDest){
 			target = false;
 			travel = false;
 			prev.clear();
-			if((xPos == 0 && yPos == 0) || goBack) //if we are turning back
+			if((xPos == 0 && yPos == 0) && goBack){
 				return CLIMB;
+			}
 		}
-		if(travel)
-			return goToTarget(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe, prev);
-	}
-	
 
-	if (moves == 0) //first block only
+		if(travel)
+			return naviPath(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe, prev);
+	}
+		
+	if(moves == 0 ) //1st turn
 	{
+
+/**/		cout << "1st turn" << endl;
+
 		if(breeze){
+/**/			cout << "felt breeze" << endl;
 			return CLIMB;
 		}
-		else if (stench)
-		{
+		if(stench){
+/**/			cout << "smelled STENCH" << endl;
 			if(!arrowShot){
-				arrowShot = true; //added a new boolean to determine if we shot the arrow yet or not
+/**/				cout << "arrow shot" << endl;
+				arrowShot = true;
 				return SHOOT;
 			}
-			if(!wumpus){
-				xWump = 0; //if fails to hit wumpus
+			if(!wumpus){						
+				xWump = 0;
 				yWump = 1;
 				wFound = true;
 			}
 			else{
 				explore.insert(pair<int, int> (0, 1));
 			}
-			safe.insert(pair<int, int>(0,0));
-			move++;
+			checkSafe(xPos, yPos, safe);
 			goForward(xPos, yPos, dir);
+			moves++;
+			return FORWARD;
+
+		}
+		else{
+			checkSafe(xPos, yPos, safe);
+
+			if(moves != 0)
+				exShorten(xPos, yPos, explore);
+		
+			surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
+
+			addOnly(explore, testPos);
+		
+			testPos.clear();
+
+			moves++;
+
+			goForward(xPos, yPos, dir);
+	
 			return FORWARD;
 		}
-		
-		checkSafe(xPos, yPos, safe);//add to save list
-			
-		if (moves != 0)			//take position out of explore list
-			exShorten(xPos, yPos, explore);
-			
-		surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
-			
-		addOnly(explore, testPos);//add test list to explore list
-			
-		testPos.clear();
-		
-		moves++;
-		goForward(xPos, yPos, dir);
-		return FORWARD;		
 	}
-		
-	if (stench || breeze) //if sense a stench or breeze
-	{
-		checkSafe(xPos, yPos, safe); //add current positon to safe list
-		exShorten(xPos, yPos, explore);//remove position from explore list
+	else{
+		if(stench || breeze){
+			checkSafe(xPos, yPos, safe);
+			exShorten(xPos, yPos, explore);
 
-		surTiles(xPos, yPos, xLim, yLim, xWall, yWall safe, testPos); //get surrounding unknowns
+			surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
 
-		if (stench && breeze) { //if there is both a stench and breeze
-			if(!wumpus)
-				compSelf(unknownWump, wump, testPos);//self checking function: if overlays, update wumpus
-			compSelf(unknownPit, pits, testPos);//self checking function: pits version 
-			exDelSB(explore, testPos); //takes out surrounding area from explore list
-		}
-		else if (stench) { //if there is only a stench
-			if(!wumpus){
-				compSelf(unknownWump, wump, testPos);
-				exDelSB(explore, testPos);
-
-				wCheckP(explore, unknownWump, unknownPit, pits, testPos);//check unknown wumpus with known & unknown pits
-			}
-			if(wumpus)
-				addOnly(explore, testPos); //if wumpus is dead, add unknowns into explore
-		}
-		else if (breeze) { //if there is only a breeze
-
-			compSelf(unknownPit, pits, testPos);
-			exDelSB(explore, testPos);
-
-			if (!wumpus && !wFound)//if wumpus is not dead yet and not found yet
-				pCheckW(explore, unknownPit, unknownWump, testPos);//check unknown pits with unknown wumpus
-		}
-
-		testPos.clear();
-		
-		if(pits.size() != 0)
-			exDelSB(explore, pits); //takes out known pits from explore list
-
-		if (!wumpus && !wFound) {//if wumpus is not dead and not found yet
-			if (unknownWump.size() == 1 || wump.size() == 1) { //if unknownWump list or wump list is size 1
-				map<int, int>::iterator it;
-
-				if (wump.size() == 0) {		//getting wumpus location
-					it = unknownWump.begin();
-					xWump = it->first;
-					yWump = it->second;
+			if(stench && breeze){
+/**/				cout << "there's a Stench and Breeze" << endl;
+				if(!wumpus){
+					compSelf(unknownWump, wump, testPos);
 				}
-				else {
-					it = wump.begin();
-					xWump = it->first;
-					yWump = it->second;
-				}
+				
+				compSelf(unknownPit, pit, testPos);
+				
+				//exDelSB(explore, testPos, saveSafe);
 			}
-			unknownWump.clear();
-		}
-		
-		if(wFound){
-			if(!wumpus)
-				exShorten(xWump, yWump, explore); //take out wumpus point from explore list
-			if(explore.size() == 0 && !arrowShot){ //if nothing left to explore, wumpus hunt if arrow has not been shot
-				hunt = true;
-				wHunt = true;
-				turnRight(dir);
-				return TURN_RIGHT;
-			}
-		}
-
-
-		if (explore.size() == 0) { 	//how the agent should move
-			goBack = true;
-			turnAround = true;  
-			xDest = 0;
-			yDest = 0;
-			target = true;
-			travel = true;
-			turnLeft(dir);
-			return TURN_LEFT;
-		}
-		else {
-			bool next = false;
-			target = getTarget(xPos, yPos, explore, xDest, yDest, next); //gets target
+			else if(stench){
+/**/				cout << "something smells" << endl;
+				if(!wumpus){
+					compSelf(unknownWump, wump, testPos);
+				//	exDelSB(explore, testPos, saveSafe);
 					
-			if (next) //if destination is right next to current tile
-			{
-				oneMv = true;
-				if(xPos == xDest){ //if destination is above or below current tile
-					if((yDest - yPos) == 1){
+					if(wump.size() == 0 && !wFound)
+						wCheckP(explore, unknownWump, unknownPit, pit, testPos);//compare with pits
+				}
+				if(wumpus){
+					addOnly(explore, testPos);
+				}	
+			}
+			else if(breeze){
+/**/				cout << "felt breeze" << endl;
+				compSelf(unknownPit, pit, testPos);
+				//exDelSB(explore, testPos, saveSafe);
+	
+				if(!wumpus && !wFound)//compare with wumpus	
+					pCheckW(explore, unknownPit, unknownWump, testPos);		
+			}
+
+			if(pit.size() != 0)
+				exDelSB(explore, pit);
+			
+			testPos.clear();
+
+			map<int, int>::iterator it;
+			
+			cout << "Safe Points: " << endl;
+			for(it = safe.begin(); it != safe.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+			cout << "Explore Points: " << endl;
+			for(it = explore.begin(); it != explore.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+
+			cout << "Wumpus?: " << endl;
+			for(it = unknownWump.begin(); it != unknownWump.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+			cout << "Wumpus Location: " << endl;
+			for(it = wump.begin(); it != wump.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+			cout << "Wumpus Location(x,y):\t " << xWump << ", " << yWump << endl; 
+				
+			cout << "Pit????: " << endl;
+			for(it = unknownPit.begin(); it != unknownPit.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+			cout << "Pits: " << endl;
+			for(it = pit.begin(); it != pit.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+
+			if(!wumpus && !wFound){
+				if(unknownWump.size() == 1 || wump.size() == 1){
+					wumpus = true;
+					map<int, int>::iterator i;
+
+					if(wump.size() == 0){
+						i = unknownWump.begin();
+						xWump = i->first;
+						yWump = i->second;
+					}
+					else{
+						i = wump.begin();
+						xWump = i->first;
+						yWump = i->second;
+					}
+					unknownWump.clear();
+					wFound = true;
+/**/					cout << "Wumpus Found" << endl;
+				}
+			}
+			if(wFound){
+				//take out wumpus point from explore list
+				//if explore size == 0, then hunt wumpus
+				if(!wumpus)		
+					exShorten(xWump, yWump, explore);	
+				if(explore.size() == 0 && !arrowShot){
+/**/					cout << "Hunting time" << endl;
+					hunt = true;
+					wHunt = true;
+					turnRight(dir);
+					return TURN_RIGHT;
+				}
+			}
+			
+			if(explore.size() == 0 || explore.empty()){
+				cout << "going back" << endl; 
+				goBack = true;
+				target = true;
+				travel = true;
+				turnHlf = true;
+				xDest = 0;
+				yDest = 0;
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+			else{
+		
+				//need to get hunt function working
+				bool next = false;
+				target = getTarget(xPos, yPos, dir, explore, xDest, yDest, next);
+					
+/**/				cout << "Next Destination: " << xDest << ", " << yDest << endl;
+
+				if(next){
+/**/					cout << "one move only function" << endl;
+					oneMv = true;
+					if(xPos == xDest){
+						if((yDest - yPos) == 1){		
+							if(dir == 0){
+								turnLeft(dir);
+								return TURN_LEFT;
+							}
+							else if(dir == 1){
+								oneMv = false;
+								goForward(xPos, yPos, dir);
+								return FORWARD;
+							} 	
+							else if(dir == 2){
+								turnRight(dir);
+								return TURN_RIGHT;
+							}
+							else if(dir == 3){
+								hlfTurn = true;
+								turnRight(dir);
+								return TURN_RIGHT;
+							}
+						}
+						else{	
+							if(dir == 0){
+								turnRight(dir);
+								return TURN_RIGHT;
+							}
+							else if(dir == 1){
+								hlfTurn = true; //180 degree turn
+								turnRight(dir);
+								return TURN_RIGHT;
+							}	
+							else if(dir == 2){
+								turnLeft(dir);
+								return TURN_LEFT;
+							}
+							else if(dir == 3){
+								oneMv = false;
+								goForward(xPos, yPos, dir);
+								return FORWARD;
+							}
+						}
+					}
+					if(yPos == yDest){
+						if((xDest - xPos) == 1){
+							if(dir == 0){
+								oneMv = false;
+								goForward(xPos, yPos, dir);
+								return FORWARD;
+							}
+							else if(dir == 1){
+								turnRight(dir);
+								return TURN_RIGHT;
+							} 	
+							else if(dir == 2){
+								hlfTurn = true; //180 degree turn
+								turnRight(dir);
+								return TURN_RIGHT;
+							}
+							else if(dir == 3){
+								turnLeft(dir);
+								return TURN_LEFT;
+							}
+						}
+						else{
+							if(dir == 0){
+								hlfTurn = true; //180 degree turn
+								turnRight(dir);
+								return TURN_RIGHT;
+							}
+							else if(dir == 1){
+								turnLeft(dir);
+								return TURN_LEFT;
+							}
+							else if(dir == 2){
+								oneMv = false;
+								goForward(xPos, yPos, dir);
+								return FORWARD;
+							} 
+							else if(dir == 3){
+								turnRight(dir);
+								return TURN_RIGHT;
+							}
+						}
+					}
+				}
+/**/				cout << "take a step back and go to target" << endl;		
+				turnHlf = true;
+				travel = true;
+				turnLeft(dir);	
+				return TURN_LEFT;
+					
+			}
+		}
+		else{
+			checkSafe(xPos, yPos, safe);
+
+			if(moves != 0)
+				exShorten(xPos, yPos, explore);
+		
+			if(pit.size() != 0)
+				exDelSB(explore, pit);
+				
+			surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
+
+			addOnly(explore, testPos);
+			
+			//addOnly(saveSafe, testPos);
+
+			testPos.clear();
+
+			cout << "Safe Points: " << endl;
+			map<int, int>::iterator it;
+			for(it = safe.begin(); it != safe.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+			cout << "Explore Points: " << endl;
+			for(it = explore.begin(); it != explore.end(); it++){
+				cout << "\t" << it->first << " " << it->second << endl;
+			}
+
+			if(explore.size() == 0 || explore.empty()){
+				cout << "going back" << endl; 
+				goBack = true;
+				target = true;
+				travel = true;
+				turnHlf = true;
+				xDest = 0;
+				yDest = 0;
+				turnLeft(dir);
+				return TURN_LEFT;
+			}
+
+			bool next = false;
+			target = getTarget(xPos, yPos, dir, explore, xDest, yDest, next);
+					
+/**/			cout << "Next Destination: " << xDest << ", " << yDest << endl;
+
+			if(next){
+/**/				oneMv = true;
+				if(xPos == xDest){
+					if((yDest - yPos) == 1){		
 						if(dir == 0){
 							turnLeft(dir);
 							return TURN_LEFT;
@@ -348,7 +562,7 @@ Agent::Action MyAI::getAction
 							oneMv = false;
 							goForward(xPos, yPos, dir);
 							return FORWARD;
-						}
+						} 	
 						else if(dir == 2){
 							turnRight(dir);
 							return TURN_RIGHT;
@@ -359,16 +573,16 @@ Agent::Action MyAI::getAction
 							return TURN_RIGHT;
 						}
 					}
-					else{ 
+					else{	
 						if(dir == 0){
 							turnRight(dir);
 							return TURN_RIGHT;
 						}
 						else if(dir == 1){
-							hlfTurn = true;
+							hlfTurn = true; //180 degree turn
 							turnRight(dir);
 							return TURN_RIGHT;
-						}
+						}	
 						else if(dir == 2){
 							turnLeft(dir);
 							return TURN_LEFT;
@@ -380,7 +594,7 @@ Agent::Action MyAI::getAction
 						}
 					}
 				}
-				else if(yPos == yDest){ //if destination is to the left or right of tile
+				if(yPos == yDest){
 					if((xDest - xPos) == 1){
 						if(dir == 0){
 							oneMv = false;
@@ -390,9 +604,9 @@ Agent::Action MyAI::getAction
 						else if(dir == 1){
 							turnRight(dir);
 							return TURN_RIGHT;
-						}
+						} 	
 						else if(dir == 2){
-							hlfTurn = true;
+							hlfTurn = true; //180 degree turn
 							turnRight(dir);
 							return TURN_RIGHT;
 						}
@@ -403,7 +617,7 @@ Agent::Action MyAI::getAction
 					}
 					else{
 						if(dir == 0){
-							hlfTurn = true;
+							hlfTurn = true; //180 degree turn
 							turnRight(dir);
 							return TURN_RIGHT;
 						}
@@ -415,7 +629,7 @@ Agent::Action MyAI::getAction
 							oneMv = false;
 							goForward(xPos, yPos, dir);
 							return FORWARD;
-						}
+						} 
 						else if(dir == 3){
 							turnRight(dir);
 							return TURN_RIGHT;
@@ -423,33 +637,131 @@ Agent::Action MyAI::getAction
 					}
 				}
 			}
-				
-			//else, if the destination is no where near take a step back and search for target 
-			travel = true;
+			/*cout << "take a step back and go to target" << endl;		
 			turnHlf = true;
-			turnLeft(dir);
-			return TURN_LEFT;
-		}
-	}
-	else { //for safe tiles
-		checkSafe(xPos, yPos, safe);//add to save list
+			travel = true;
+			turnLeft(dir);	
+			return TURN_LEFT;*/
 
-		if (moves != 0)			//take position out of explore list
-			exShorten(xPos, yPos, explore);
 
-		surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
+			if(dir == 0){
+				if(xWall){
+					if(yWall){
+						if(yPos == (yLim - 1)){
+							cout << "entered upper right corner" << endl;
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+					}
+					if(xPos == (xLim - 1)){
+						turnLeft(dir);
+						return TURN_LEFT;
+					}
+				}
+			}
+			else if(dir == 1){
+				if(yWall){
+					if(xWall){
+						if(xPos == (xLim - 1)){
+							cout << "entered upper left corner" << endl;
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+					}
+					if(yPos == (yLim - 1)){
+						turnRight(dir);
+						return TURN_RIGHT;
+					}
+				}
+			}
+			else if(dir == 2){
+				if(xPos == 0){
+					if(yWall){
+						if(yPos = (yLim -1)){
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+					}
+					turnRight(dir);
+					return TURN_RIGHT;
+				}
+			}
+			else if(dir == 3){
+				if(yPos == 0){
+					if(xWall){
+						if(xPos = (xLim -1)){
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+					}
+					turnLeft(dir);
+					return TURN_LEFT;
+				}
+			}
+			if(xPos == 0){
+				if(yPos == 0){
+					if(dir == 2){
+						turnRight(dir);
+						return TURN_RIGHT;
+					}
+					else if(dir == 3){
+						turnLeft(dir);
+						return TURN_LEFT;
+					}
+				}
+				if(yWall){
+					if(yPos == (yLim - 1)){
+						if(dir == 1){
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 2){
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+					}
+				}
 
-		addOnly(explore, testPos);//add test list to explore list
-
-		testPos.clear();
-		
-		if(xPos == 0){
-			if(yPos == 0){
 				if(dir == 2){
 					turnRight(dir);
 					return TURN_RIGHT;
 				}
-				else if(dir == 3){
+			}
+
+			if(xWall){
+				if(xPos == (xLim - 1)){
+					if(yPos == 0){
+						if(dir == 3){
+							turnRight(dir);
+							return TURN_RIGHT;
+						}
+						else if(dir == 0){
+							turnLeft(dir);
+							return TURN_LEFT;
+						}
+					}
+					if(yWall){
+						if(yPos == (yLim - 1)){
+							if(dir == 0){
+								turnRight(dir);
+								return TURN_RIGHT;
+							}
+							else if(dir == 1){
+								turnLeft(dir);
+								return TURN_LEFT;
+							}
+						}
+					}
+
+					if(dir == 0){
+						turnLeft(dir);
+						return TURN_LEFT;
+					}
+	
+				}
+			}
+			if(yPos == 0){
+				if(dir == 3){
 					turnLeft(dir);
 					return TURN_LEFT;
 				}
@@ -460,87 +772,31 @@ Agent::Action MyAI::getAction
 						turnRight(dir);
 						return TURN_RIGHT;
 					}
-					else if(dir == 2){
-						turnLeft(dir);
-						return TURN_LEFT;
-					}
-				}
-			}
-			
-			if(dir == 2){
-				turnRight(dir);
-				return TURN_RIGHT;
-			}
-		}
-		
-		if(xWall){
-			if(xPos == (xLim - 1)){
-				if(yPos == 0){
-					if(dir == 3){
-						turnRight(dir);
-						return TURN_RIGHT;
-					}
-					else if(dir == 0){
-						turnLeft(dir);
-						return TURN_LEFT;
-					}
-				}
-				if(yWall){
-					if(yPos == (yLim - 1)){
-						if(dir == 0){
-							turnRight(dir);
-							return TURN_RIGHT;
-						}
-						else if(dir == 1){
-							turnLeft(dir);
-							return TURN_LEFT;
-						}
-					}
-				}
-
-				if(dir == 0){
-					turnLeft(dir);
-					return TURN_LEFT;
-				}
-			}
-		}
-		
-		if(yPos == 0){
-			if(dir == 3){
-				turnLeft(dir);
-				return TURN_LEFT;
-			}
-		}
-		
-		if(yWall){
-			if(yPos == (yLim - 1)){
-				if(dir == 1){
-					turnRight(dir);
-					return TURN_RIGHT;
-				}
-			}
-		}
-		
-		moves++;
-		goForward(xPos, yPos, dir);
-		return FORWARD;
-	}
 	
+				}
+			}
+
+			moves++;
+			goForward(xPos, yPos, dir);
+			return FORWARD;
+		}
+
+	}	
+	
+//	cout << " climbed out" << endl;
 	// ======================================================================
 	// YOUR CODE ENDS
 	// ======================================================================
 }
 
-
-
 // ======================================================================
 // YOUR CODE BEGINS
 // ======================================================================
-void MyAI::turnLeft(int &d){		//directions to keep track of agent
+void MyAI::turnLeft(int &d){
 	if(d == 0){
 		d = 1;
 	}
-	else if (d == 1){
+	else if(d == 1){
 		d = 2;
 	}
 	else if(d == 2){
@@ -551,11 +807,11 @@ void MyAI::turnLeft(int &d){		//directions to keep track of agent
 	}
 	return;
 }
-void turnRight(int &d){
+void MyAI::turnRight(int &d){
 	if(d == 0){
 		d = 3;
 	}
-	else if (d == 1){
+	else if(d == 1){
 		d = 0;
 	}
 	else if(d == 2){
@@ -566,11 +822,11 @@ void turnRight(int &d){
 	}
 	return;
 }
-void goForward(int &x, int &y, int d){
+void MyAI:: goForward(int &x, int &y, int d){
 	if(d == 0){
 		x++;
 	}
-	else if (d == 1){
+	else if(d == 1){
 		y++;
 	}
 	else if(d == 2){
@@ -581,11 +837,12 @@ void goForward(int &x, int &y, int d){
 	}
 	return;
 }
+
 void turn180(int &d){
 	if(d == 0){
 		d = 2;
 	}
-	else if (d == 1){
+	else if(d == 1){
 		d = 3;
 	}
 	else if(d == 2){
@@ -598,10 +855,18 @@ void turn180(int &d){
 }
 
 
-void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position into safe list
+void MyAI::checkSafe(int x, int y, multimap<int,int> &s){
+	/*cout << "safe Check: " << endl;
+	map<int, int>::iterator i;
+	cout << "    before:" << endl;
+	for(i = s.begin(); i != s.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}*/
+
 	if(s.size() == 0)
-		s.insert(pair<int, int> (x, y));
+		s.insert(pair<int,int>(x, y));
 	else{
+//		cout << "entered insertion" << endl;
 		auto const& chkS = s.equal_range(x);
 		map<int, int>::iterator it;
 		bool newS = true;
@@ -611,24 +876,37 @@ void MyAI::checkSafe(int x, int y, multimap<int, int> &s){ //insert position int
 				break;
 			}
 		}
-		
+
 		if(newS){
-			s.insert(pair<int, int> (x, y));
+			s.insert(pair<int,int>(x, y));
 		}
 	}
+
+/*	cout << "    after:" << endl;
+	for(i = s.begin(); i != s.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
 	return;
 }
 
-void MyAI::exShorten(int x, int y, multimap<int, int> &e){ //takes position out of the explore list
+void MyAI::exShorten(int x, int y, multimap<int, int> &e){
+/*	cout << "exShorten:" << endl;
+	map<int, int>::iterator i;
+	cout << "    before:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/	
 	if(e.count(x) == 1){
 		auto exDel = e.find(x);
-		if(exDel != e.end())
-			if(exDel-> second == y)
+		if(exDel != e.end()){
+			if(exDel->second == y)
 				e.erase(x);
+		}
 	}
 	else{
 		auto const& exDel = e.equal_range(x);
-		
 		map<int, int>::iterator it;
 		for(it = exDel.first; it != exDel.second; it++){
 			if(it->second == y){
@@ -637,249 +915,510 @@ void MyAI::exShorten(int x, int y, multimap<int, int> &e){ //takes position out 
 			}
 		}
 	}
+	
+/*	cout << "    after:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
 	return;
 }
 
 void MyAI::surTiles(int x, int y, int xL, int yL, bool xW, bool yW, multimap<int, int> &s, multimap<int, int> &t){
-	//get surrounding tiles
+	
 	if(yW){
 		if((y+1) < yL)
-			t.insert(pair<int, int>(x, (y + 1)));
+			t.insert(pair<int, int> (x, (y + 1)));
 	}
 	else{
-		if(y != yL)		
-			t.insert(pair<int, int>(x, (y + 1)));
+		if(y != yL)
+			t.insert(pair<int, int> (x, (y + 1)));
 	}
 	if((y-1) >= 0)
-		t.insert(pair<int, int>(x, (y - 1)));
+		t.insert(pair<int, int> (x, (y - 1)));
+	
 	if(xW){
 		if((x+1) < xL)
-			t.insert(pair<int, int>((x + 1), y));
+			t.insert(pair<int, int> ((x + 1), y));
 	}
 	else{
 		if(x != xL)
-			t.insert(pair<int, int>((x + 1), y));
+			t.insert(pair<int, int> ((x + 1), y));
 	}
 	if((x-1) >= 0)
-		t.insert(pair<int, int>((x - 1), y));
-				
-	map <int, int>::iterator surIt;
+		t.insert(pair<int, int> ((x - 1), y));
+
+	map<int, int>::iterator surIt;
 	map<int, int>::iterator it;
-	for(surIt = s.begin(); surIt != s.end(); surIt++){//take out test list from safe list
-		auto const & itrS = t.equal_range(surIt->first);
-			
+	for(surIt = s.begin(); surIt != s.end(); surIt++){
+		auto const& itrS = t.equal_range(surIt->first);
 		for(it = itrS.first; it != itrS.second; it++){
-			if(it->second == surIt->second){
+			if(surIt->second == it->second){
 				t.erase(it);
 				break;
 			}
 		}
-	}
-	
+	}	
+
 	return;
 }
 
-void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){ //unknown surroundings to specified list
+void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){
+/*	cout << "AddOnly: " << endl;
+	map<int, int>::iterator i;
+	cout << "    testPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    mapPoints:" << endl;
+	for(i = m.begin(); i != m.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
 
-	if(m.size() == 0){	
+	if(m.size() == 0){
 		m.insert(t.begin(), t.end());
 	}
 	else{
-	 	map <int, int>::iterator itA;
-		map <int, int>::iterator it;
+		map<int, int>::iterator itA;
+		map<int, int>::iterator i;	
+
 		for(itA = t.begin(); itA != t.end(); itA++){
 			auto itr = m.find(itA->first);
-					
 			if(itr == m.end()){
-				m.insert(pair<int, int> (itA->first, itA->second));
+				m.insert(pair<int, int>(itA->first, itA->second));
 			}
 			else{
-				if(itr->second != itC->second){
-					auto const & itM = m.equal_range(itA->first);
+				if(itr->second != itA->second){
+					auto const& itM = m.equal_range(itA->first);
 					bool exists = false;
-					for(it = itM.first; it != itM.second; it++){
-						if(it->second == itA->second){
+					for( i = itM.first; i != itM.second; i++){
+						if(i->second == itA->second){
 							exists = true;
-							break;
-						}
+							break;	
+						}		
 					}
-					
-					if(!exists)
-						m.insert(pair<int, int>(itA->first, itA->second)); //add point to list if it didn't exist
+					if(!exists)		
+						m.insert(pair<int, int>(itA->first, itA->second));
+										
 				}
 			}
 		}
 	}
+
+/*	cout << "  After:" << endl;
+	for(i = m.begin(); i != m.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
+
 	return;
 }
 
-void MyAI::compSelf(multimap<int, int> &m, multimap<int, int> &m2, multimap<int, int> &t){ //checks if point overlays at any point
+void MyAI::bumpClear(int x, int y, int &xD, int &yD, int xL, int yL, bool xW, bool yW, multimap<int, int> &e){
+	xD = x;
+	yD = y;
+	cout << "bumpClear: " << endl;
+	map<int, int>::iterator i;
+	cout << "  Before:" << endl;
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
 
-	if(m.size() == 0){	
+	map<int, int>::iterator it;
+	//map<int, int>::iterator i;
+	if(xW){
+		auto xDel = e.find(xL);
+		if(xDel != e.end()){
+			e.erase(xDel);
+			/*for(it = xDel.first; it != xDel.second; it++){
+				for(i = e.begin(); i != e.end(); i++){
+					if((i->first == it->first) && (i->second == it->second)){
+						e.erase(i);
+						break;
+					}
+				}
+			}*/
+		}
+	}
+	if(yW){
+		multimap<int, int> yRange;
+		for(it = e.begin(); it != e.end(); it++){
+			if(it->second == yL){
+				yRange.insert(pair<int, int> (it->first, it->second));
+			}
+		}
+
+		for(it = yRange.begin(); it != yRange.end(); it++){
+			for(i = e.begin(); i != e.end(); i++){
+				if((i->first == it->first) && (i->second == it->second)){
+					e.erase(i);
+					break;
+				}
+			}	
+		}
+	}
+	cout << "  After:" << endl;
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+
+	return;
+}	
+	
+
+void MyAI::compSelf(multimap<int, int> &m, multimap<int, int> &m2, multimap<int, int> &t){
+/*	cout << "Compare Points: " << endl;
+	map<int, int>::iterator i;
+	cout << "    TestPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+
+	cout << "    mapPoints:" << endl;
+	for(i = m.begin(); i != m.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
+
+	if(m.size() == 0){
 		m.insert(t.begin(), t.end());
 	}
 	else{
-	 	map <int, int>::iterator itC;
-		map <int, int>::iterator it;
-		for(itC = t.begin(); itC != t.end(); itC++){
-			auto itr = m.find(itC->first);
-					
+		map<int, int>::iterator it;
+		map<int, int>::iterator i;
+		
+		for(it = t.begin(); it != t.end(); it++){
+			auto itr = m.find(it->first);
 			if(itr == m.end()){
-				m.insert(pair<int, int> (itC->first, itC->second)); 
+				m.insert(pair<int, int>(it->first, it->second));
 			}
 			else{
-				if(itr->second == itC->second){
-					auto const & itM = m2.equal_range(itC->first);
+				if(itr->second == it->second){
+					auto const& itM = m2.equal_range(it->first);
 					bool exists = false;
-					for(it = itM.first; it != itM.second; it++){
-						if(it->second == itC->second){
+					for( i = itM.first; i != itM.second; i++){
+						if(i->second == it->second){
 							exists = true;
-							break;
-						}
+							break;	
+						}		
 					}
-					
-					if(!exists)
-						m2.insert(pair<int, int>(itC->first, itC->second)); //add point to known list
-					m.erase(itr);	//take out point from unknown list
+					if(!exists)		
+						m2.insert(pair<int, int>(it->first, it->second));
+										
+					m.erase(itr);
 				}
 			}
 		}
 	}
+/*	cout << "  After:" << endl;
+	cout << "    mapPoints:" << endl;
+	for(i = m.begin(); i != m.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    overlap: " << endl;;
+	for(i = m2.begin(); i != m2.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+
+*/
 	return;
+
 }
 
-void MyAI::exDelSB(multimap<int, int> &e, multimap<int, int> &t){ //takes unknown tile locations out of explore list
-	map<int, int>::iterator itE;
-	for(itE = t.begin(); itE != t.end(); itE++){
-		if(e.count(itE->first) == 1){
-			auto exDel = e.find(itE->first);
+void MyAI::exDelSB(multimap<int, int> &e, multimap<int, int> &t){
+/*	cout << "exDelSB: " << endl;
+	map<int, int>::iterator i;
+	cout << "    TestPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+
+	cout << "    explore before:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
+
+	map<int, int>::iterator it;
+
+	for(it = t.begin(); it != t.end(); it++){
+		if(e.count(it->first) == 1){
+			auto exDel = e.find(it->first);
 			if(exDel != e.end())
-				if(exDel-> second == itE->second)
+				if(exDel->second == it->second)
 					e.erase(exDel);
 		}
 		else{
-			auto const& exDel = e.equal_range(itE->first);
-		
-			map<int, int>::iterator it;
-			for(it = exDel.first; it != exDel.second; it++){
-				if(it->second == itE->second){
-					e.erase(it);
-					break;	
+			auto const& exDel = e.equal_range(it->first);
+			map<int, int>::iterator itr;
+			for(itr = exDel.first; itr != exDel.second; itr++){
+				if(itr->second == it->second){
+					e.erase(itr);
+					break;
 				}
 			}
 		}
+	
 	}
+	
+/*	cout << "  After:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
 	return;
 }
 
-//checks unknown wumpus to known and unknown pits and adds to explore
-void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> t){ 
-	map<int,int>::iterator it;
-	map<int,int>::iterator itr;
-	map<int,int>::iterator i;
+void MyAI::wCheckP(multimap<int, int> &e, multimap<int, int> &w, multimap<int, int> &p, multimap<int, int> &p2, multimap<int, int> t){
+/*	cout << "wCheckP: " << endl;
+	map<int, int>::iterator i;
+	cout << "  Before: " << endl;
+	cout << "    TestPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownWump:" << endl;
+	for(i = w.begin(); i != w.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownPit:" << endl;
+	for(i = p.begin(); i != p.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    pits:" << endl;
+	for(i = p2.begin(); i != p2.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
+
+	map<int, int>::iterator it;
+	map<int, int>::iterator itr;
+	map<int, int>::iterator i;
+
+//	cout << "checking against known pits" << endl;
 	
-	if(p2.size() != 0){ 	//takes out known pits from wumpus list only
-		for(it = t.begin(); it != t.end(); it++){
+	if(p2.size() != 0){
+		for(it = t.begin(); it != t.end(); it++){	
 			auto const& wDel = p2.equal_range(it->first);
-		
+			bool found = false; 
 			for(itr = wDel.first; itr != wDel.second; itr++){
 				if(itr->second == it->second){
 					auto const& wump = w.equal_range(it->first);
-		
-					for(i = wump.first; i != wump.second; i++){
+					for(i = wump.first; i!= wump.second; i++){
 						if(i->second == it->second){
 							w.erase(i);
+							found = true;
 							break;
 						}
 					}
 				}
+				if(found)
+					break;
 			}
 		}
+			
 	}
-	
-	//takes out overlapping points from wumpus and unknown pit list and adds to explore list
+/*	cout << "  After pits: " << endl;
+	cout << "    TestPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownWump:" << endl;
+	for(i = w.begin(); i != w.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownPit:" << endl;
+	for(i = p.begin(); i != p.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    pits:" << endl;
+	for(i = p2.begin(); i != p2.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+//	cout << "checking against unknown pits" << endl;	
+*/
+
 	int xDel;
 	int yDel;
 	bool found = false;
-	for(it = t.begin(); it != t.end(); it++){
+	for(it = t.begin(); it != t.end(); it++){	
 		auto const& wComp = p.equal_range(it->first);
-		
+//		cout << "compariing with unknown pit value" << endl;
 		for(itr = wComp.first; itr != wComp.second; itr++){
 			if(itr->second == it->second){
+//				cout << "found overlap" << endl;
 				p.erase(itr);
 				e.insert(pair<int, int>(it->first, it->second));
-				xDel = it->first;
-				yDel = it->second; 
 				found = true;
+				xDel = it->first;
+				yDel = it->second;
 				break;
+			/*	cout << "erasing unknownWump Coord" << endl;
+				auto const& wump = w.equal_range(it->first);
+				for(i = wump.first; i!= wump.second; i++){
+					if(i->second == it->second){
+						w.erase(i);
+			//			found = true;
+						break;
+					}
+				}*/
 			}
 		}
+
 		if(found)
 			break;
 	}
-	
+
 	if(found){
+//		cout << "erasing unknownWump Coord" << endl;
+	
 		auto const& wump = w.equal_range(xDel);
-		for (i = wump.first; i != wump.second; i++) {
-			if (i->second == yDel) {
+		for(i = wump.first; i!= wump.second; i++){
+			if(i->second == yDel){
 				w.erase(i);
 				break;
 			}
 		}
 	}
+/*	cout << "  After: " << endl;
+	cout << "    TestPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownWump:" << endl;
+	for(i = w.begin(); i != w.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownPit:" << endl;
+	for(i = p.begin(); i != p.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    pits:" << endl;
+	for(i = p2.begin(); i != p2.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/
+
 	return;
 }
 
-//checks unknown pits to unknown wumpus and adds to explore
-void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> t){ 
-	map<int,int>::iterator it;
-	map<int,int>::iterator itr;
-	map<int,int>::iterator i;
+void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, int> &w, multimap<int, int> t){
+/*	cout << "pCheckW: " << endl;
+	map<int, int>::iterator i;
+	cout << "  Before: " << endl;
+	cout << "    TestPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownPit:" << endl;
+	for(i = p.begin(); i != p.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownWump:" << endl;
+	for(i = w.begin(); i != w.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/	
+	map<int, int>::iterator it;
+	map<int, int>::iterator itr;
+	map<int, int>::iterator i;
 	
 	int xDel;
 	int yDel;
 	bool found = false;
-	for(it = t.begin(); it != t.end(); it++){
+	for(it = t.begin(); it != t.end(); it++){	
 		auto const& pComp = w.equal_range(it->first);
-		
+
 		for(itr = pComp.first; itr != pComp.second; itr++){
 			if(itr->second == it->second){
 				w.erase(itr);
 				e.insert(pair<int, int>(it->first, it->second));
 				xDel = it->first;
-				yDel = it->second; 
+				yDel = it->second;
 				found = true;
 				break;
+			/*	auto const& pit = p.equal_range(it->first);
+				for(i = pit.first; i!= pit.second; i++){
+					if(i->second == it->second){
+						p.erase(i);
+						break;
+					}
+				}
+			*/
 			}
 		}
 		if(found)
 			break;
 	}
-	
 	if(found){
+//		cout << "erasing unknownPit Coord" << endl;
+	
 		auto const& wump = p.equal_range(xDel);
-		for (i = wump.first; i != wump.second; i++) {
-			if (i->second == yDel) {
+		for(i = wump.first; i!= wump.second; i++){
+			if(i->second == yDel){
 				p.erase(i);
 				break;
 			}
 		}
 	}
-	
+/*	cout << "  After: " << endl;
+	cout << "    TestPos:" << endl;
+	for(i = t.begin(); i != t.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownPit:" << endl;
+	for(i = p.begin(); i != p.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+	cout << "    unknownWump:" << endl;
+	for(i = w.begin(); i != w.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+*/	
 	return;
 }
 
 bool MyAI::getTarget(int x, int y, int dir, multimap<int, int> e, int& xD, int& yD, bool& n){
+	cout << "getTarget: " << endl;
+	map<int, int>:: iterator i;
+	cout << "    explore:" << endl;
+	for(i = e.begin(); i != e.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
 	
-	map<int, int>::iterator itT;
 
+	map<int, int>::iterator itT;
 	int dist = 1000;
 	
 	if(dir == 1 || dir == 3){
 		auto xFind = e.find(x);
 		if(xFind != e.end()){
-			auto const & xRange = e.equal_range(x);
+			auto const& xRange = e.equal_range(x);
 			for(itT = xRange.first; itT != xRange.second; itT++){
+		
 				int d = abs(itT->first - x) + abs(itT->second -y);
 
 				if(d < dist){
@@ -887,19 +1426,19 @@ bool MyAI::getTarget(int x, int y, int dir, multimap<int, int> e, int& xD, int& 
 					yD = itT->second;
 					dist = d;
 				}
+
 			}
-			
 			if(dist == 1){
-				n = true;  
+				n = true;
 				return false;
 			}
-			return true;
+			return true;	
 		}
 	}
 	if(dir == 0 || dir == 2){
-	
+
 		multimap<int, int> yRange;
-		
+
 		for(itT = e.begin(); itT != e.end(); itT++){
 			if(itT->second == y)
 				yRange.insert(pair<int, int>(itT->first, itT->second));
@@ -914,96 +1453,117 @@ bool MyAI::getTarget(int x, int y, int dir, multimap<int, int> e, int& xD, int& 
 					dist = d;
 				}
 			}
-
 			if(dist == 1){
-				n = true;  
+				n = true;
 				return false;
 			}
-			return true;
+			return true;	
 		}
 	}
-	
 	for(itT = e.begin(); itT != e.end(); itT++){
-		int d = abs(itT->first - x) + abs(itT->second -y);
 		
+		int d = abs(itT->first - x) + abs(itT->second -y);
+
 		if(d < dist){
 			xD = itT->first;
 			yD = itT->second;
 			dist = d;
 		}
+
 	}
-	
+	 
+
+
 	if(dist == 1){
-		n = true;  
+		n = true;
 		return false;
 	}
-	return true;
+	return true;	
 }
 
-Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD, int yD, bool xW, bool yW, multimap<int, int> s, multimap<int, int> &pv)
-{					//changed it into an iterative loop, player is on a tile around the destination it goes to it 
+
+Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, int yD,bool xW, bool yW, multimap<int, int> s, multimap<int, int> &pv){
+/*	cout << "Navigate to path: " << endl;
+	map<int, int>::iterator c;
+	cout << "  Before: " << endl;
+*/	
+
 	multimap<int, int> t;
 	if(yW){
 		if((y+1) < yL)
-			t.insert(pair<int, int>(x, (y + 1)));
+			t.insert(pair<int, int> (x, (y + 1)));
 	}
 	else{
-		if(y != yL)		
-			t.insert(pair<int, int>(x, (y + 1)));
+		if(y != yL)
+			t.insert(pair<int, int> (x, (y + 1)));
 	}
 	if((y-1) >= 0)
-		t.insert(pair<int, int>(x, (y - 1)));
+		t.insert(pair<int, int> (x, (y - 1)));
+	
 	if(xW){
 		if((x+1) < xL)
-			t.insert(pair<int, int>((x + 1), y));
+			t.insert(pair<int, int> ((x + 1), y));
 	}
 	else{
 		if(x != xL)
-			t.insert(pair<int, int>((x + 1), y));
+			t.insert(pair<int, int> ((x + 1), y));
 	}
+
 	if((x-1) >= 0)
-		t.insert(pair<int, int>((x - 1), y));
-	
-	exDelSB(t, pv); //to prevent loops
-	pv.insert(pair<int, int>(x, y));
+		t.insert(pair<int, int> ((x - 1), y));
+
+
+/*	cout << "    Navi TestPos:" << endl;
+	for(c = t.begin(); c != t.end(); c++){
+		cout << "\t" << c->first << " " << c->second << endl;
+	}
+*/
 	
 	map<int, int>::iterator it;
-	map<int, int>::iterator itr;	
+	map<int, int>::iterator itr;
 
+	exDelSB(t, pv);
+	pv.insert(pair<int, int> (x, y));
 	multimap<int, int> tPath;
-	for (it = t.begin(); it != t.end(); it++) //take out surrounding tiles that are not in the safe list
-	{
-		auto const & tPaths = s.equal_range(it->first);
+	for(it = t.begin(); it != t.end(); it++){
+		auto const& tPaths = s.equal_range(it->first);
 		bool inSafe = false;
 		int xPath;
 		int yPath;
-		
 		for(itr = tPaths.first; itr != tPaths.second; itr++){
-			if (it->second == itr->second)
-			{
+			if(itr->second == it->second){
 				inSafe = true;
 				xPath = it->first;
 				yPath = it->second;
 				break;
 			}
+
 		}
-		
+
 		if(inSafe){
-			tPath.insert(pair<int,int>(xPath, yPath));	
+			tPath.insert(pair<int, int> (xPath, yPath));
 		}
 	}
 	t.clear();
 	t.insert(tPath.begin(), tPath.end());
 	tPath.clear();
-	
+
+/*	cout << "  After Safe: " << endl;
+	map<int, int>::iterator c;
+	cout << "    Navi TestPos:" << endl;
+	for(c = t.begin(); c != t.end(); c++){
+		cout << "\t" << c->first << " " << c->second << endl;
+	}
+*/
+
+
 	int nextX = xD;
 	int nextY = yD;
-				//if current position is far from destination, go to next closest tile
 	int dist = abs(xD - x) + abs(yD - y);
 	if(dist != 1){
 		for(it = t.begin(); it != t.end(); it++){
 			int d = abs(xD - it->first) + abs(yD - it->second);
-			
+
 			if(d < dist){
 				dist = d;
 				nextX = it->first;
@@ -1011,10 +1571,10 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 			}
 		}
 	}
+//	cout << "next step " << nextX << ", " << nextY << endl;
 
-	
-	if(x == nextX){		//changing player position and direction to next tile
-		if((nextY- y) == 1){
+	if(x == nextX){
+		if((nextY-y) == 1){
 			if(dir == 0){
 				turnLeft(dir);
 				return TURN_LEFT;
@@ -1032,14 +1592,14 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 				return TURN_RIGHT;
 			}
 		}
-		else if((nextY - y) == -1){
+		else if((nextY-y) == -1){
 			if(dir == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
 			}
 			else if(dir == 1){
 				turnRight(dir);
-				return TURN_RIGHT;	
+				return TURN_RIGHT;
 			}
 			else if(dir == 2){
 				turnLeft(dir);
@@ -1048,11 +1608,11 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 			else if(dir == 3){
 				goForward(x, y, dir);
 				return FORWARD;
-			}	
+			}
 		}
 	}
 	else if(y == nextY){
-		if((nextX -x) == 1){
+		if((nextX-x) == 1){
 			if(dir == 0){
 				goForward(x, y, dir);
 				return FORWARD;
@@ -1070,7 +1630,7 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 				return TURN_LEFT;
 			}
 		}
-		else if((nextX-x) == -1){
+		else if((nextX-x) == -1){	
 			if(dir == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
@@ -1087,81 +1647,125 @@ Agent::Action MyAI::goToTarget(int &x, int &y, int &dir, int xL, int yL, int xD,
 				turnRight(dir);
 				return TURN_RIGHT;
 			}
+	
 		}
 	}
 }
-void MyAI::wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool xW, bool yW, multimap<int, int> s, multimap<int, int> &e, int xWump, int yWump){ //sets a target destination from safe to explore
+
+void MyAI::wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool xW, bool yW, multimap<int, int> s, multimap<int, int> &e, int xWump, int yWump){
 	map<int, int>::iterator it;
 	map<int, int>::iterator i;
-	
-	multimap<int, int> w; //get surrounding tiles of wumpus
+
+	multimap<int, int> w;
 	if(yW){
 		if((yWump+1) < yL)
-			w.insert(pair<int, int>(xWump, (yWump + 1)));
+			w.insert(pair<int, int> (xWump, (yWump + 1)));
 	}
 	else{
-		if(yWump != yL)		
-			w.insert(pair<int, int>(xWump, (yWump + 1)));
+		if(yWump != yL)
+			w.insert(pair<int, int> (xWump, (yWump + 1)));
 	}
 	if((yWump-1) >= 0)
-		w.insert(pair<int, int>(xWump, (yWump - 1)));
+		w.insert(pair<int, int> (xWump, (yWump - 1)));
+	
 	if(xW){
 		if((xWump+1) < xL)
-			w.insert(pair<int, int>((xWump + 1), yWump));
+			w.insert(pair<int, int> ((xWump + 1), yWump));
 	}
 	else{
 		if(xWump != xL)
-			w.insert(pair<int, int>((xWump + 1), yWump));
+			w.insert(pair<int, int> ((xWump + 1), yWump));
 	}
+
 	if((xWump-1) >= 0)
-		w.insert(pair<int, int>((xWump - 1), yWump));
-	
-	
+		w.insert(pair<int, int> ((xWump - 1), yWump));
+
 	multimap<int, int> wPath;
-	for (it = w.begin(); it != w.end(); it++) //take out surrounding tiles that are not in the safe list
-	{
-		auto const & tPaths = s.equal_range(it->first);
+	for(it = w.begin(); it != w.end(); it++){
+		auto const& wPaths = s.equal_range(it->first);
 		bool inSafe = false;
 		int xPath;
 		int yPath;
-		
-		for(itr = wPaths.first; itr != wPaths.second; itr++){
-			if (it->second == itr->second)
-			{
+		for(i = wPaths.first; i != wPaths.second; i++){
+			if(i->second == it->second){
 				inSafe = true;
 				xPath = it->first;
 				yPath = it->second;
 				break;
 			}
 		}
-		
+
 		if(inSafe){
-			wPath.insert(pair<int,int>(xPath, yPath));	
+			wPath.insert(pair<int, int> (xPath, yPath));
 		}
 	}
 	w.clear();
-	w.insert(tPath.begin(), tPath.end());
-	wPath.clear();
-	
-				
+	w.insert(wPath.begin(), wPath.end());
+
 	int dist = 1000;
+	if(dir == 1 || dir == 3){
+		auto xFind = w.find(x);
+		if(xFind != w.end()){
+			auto const& xRange = w.equal_range(x);
+			for(it = xRange.first; it != xRange.second; it++){
+		
+				int d = abs(it->first - x) + abs(it->second -y);
+
+				if(d < dist){
+					xD = it->first;
+					yD = it->second;
+					dist = d;
+				}
+
+			}
+			
+			return;	
+		}
+	}
+	if(dir == 0 || dir == 2){
+
+		multimap<int, int> yRange;
+
+		for(it = w.begin(); it != w.end(); it++){
+			if(it->second == y)
+				yRange.insert(pair<int, int>(it->first, it->second));
+		}
+		if(yRange.size() != 0){
+			for(it = yRange.begin(); it != yRange.end(); it++){
+				int d = abs(it->first - x) + abs(it->second -y);
+
+				if(d < dist){
+					xD = it->first;
+					yD = it->second;
+					dist = d;
+				}
+			}
+			return;	
+		}
+	}
 	
-	for(it = w.begin(); it != w.end(); it++){ //set the safe tiles into explore and set closest tile to destination
-		e.insert(pair<int, int> (it->first, it->second);
-		int d = abs(it->first - x) + abs(it->second - y);
+	for(it = w.begin(); it != w.end(); it++){
+		e.insert(pair<int, int> (it->first, it->second));
+		int d = abs(it->first - x) + abs(it->second -y);
 		if(d < dist){
 			dist = d;
 			xD = it->first;
-			xY = it->second;
+			yD = it->second;
 		}
 	}
-	return;	
-}
-Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, bool yW, multimap<int, int> s, int xWump, int yWump, bool &a){ 
-	//goes to closest location to kill wumpus
 	
-	if(x == xWump){		//changing player direction to shoot wumpus
-		if((yWump- y) >= 1){
+	return;
+}
+
+
+Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, bool yW, multimap<int, int> s, int xWump, int yWump, bool &a){
+	
+	map<int, int>::iterator it;
+	map<int, int>::iterator i;
+	
+
+	if(x == xWump){	//change directions to shoot
+		if((yWump - y) >= 1){
 			if(dir == 0){
 				turnLeft(dir);
 				return TURN_LEFT;
@@ -1186,7 +1790,7 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 			}
 			else if(dir == 1){
 				turnLeft(dir);
-				return TURN_LEFT;	
+				return TURN_LEFT;
 			}
 			else if(dir == 2){
 				turnLeft(dir);
@@ -1195,11 +1799,11 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 			else if(dir == 3){
 				a = true;
 				return SHOOT;
-			}	
+			}
 		}
 	}
-	else if(y == nextY){
-		if((nextX -x) >= 1){
+	else if(y == yWump){
+		if((xWump - x) >= 1){
 			if(dir == 0){
 				a = true;
 				return SHOOT;
@@ -1217,7 +1821,7 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 				return TURN_LEFT;
 			}
 		}
-		else if((nextX-x) <= -1){
+		else if((xWump - x) <= -1){
 			if(dir == 0){
 				turnLeft(dir);
 				return TURN_LEFT;
@@ -1236,100 +1840,100 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 			}
 		}
 	}
-	
-	multimap<int, int> t; //get surrounding positions
+
+	multimap<int, int> t;
 	if(yW){
 		if((y+1) < yL)
-			t.insert(pair<int, int>(x, (y + 1)));
+			t.insert(pair<int, int> (x, (y + 1)));
 	}
 	else{
-		if(y != yL)		
-			t.insert(pair<int, int>(x, (y + 1)));
+		if(y != yL)
+			t.insert(pair<int, int> (x, (y + 1)));
 	}
 	if((y-1) >= 0)
-		t.insert(pair<int, int>(x, (y - 1)));
+		t.insert(pair<int, int> (x, (y - 1)));
+	
 	if(xW){
 		if((x+1) < xL)
-			t.insert(pair<int, int>((x + 1), y));
+			t.insert(pair<int, int> ((x + 1), y));
 	}
 	else{
 		if(x != xL)
-			t.insert(pair<int, int>((x + 1), y));
+			t.insert(pair<int, int> ((x + 1), y));
 	}
+
 	if((x-1) >= 0)
-		t.insert(pair<int, int>((x - 1), y));
-	
-	
-	map<int, int>::iterator it;
-	map<int, int>::iterator itr;	
+		t.insert(pair<int, int> ((x-1), y));
 
 	multimap<int, int> tPath;
-	for (it = t.begin(); it != t.end(); it++) //take out surrounding tiles that are not in the safe list
-	{
-		auto const & tPaths = s.equal_range(it->first);
+	for(it = t.begin(); it != t.end(); it++){
+		auto const& tPaths = s.equal_range(it->first);
 		bool inSafe = false;
 		int xPath;
 		int yPath;
-		
-		for(itr = tPaths.first; itr != tPaths.second; itr++){
-			if (it->second == itr->second)
-			{
+		for(i = tPaths.first; i != tPaths.second; i++){
+			if(i->second == it->second){
 				inSafe = true;
 				xPath = it->first;
 				yPath = it->second;
 				break;
 			}
+
 		}
-		
+
 		if(inSafe){
-			tPath.insert(pair<int,int>(xPath, yPath));	
+			tPath.insert(pair<int, int> (xPath, yPath));
 		}
 	}
 	t.clear();
 	t.insert(tPath.begin(), tPath.end());
-	tPath.clear();
-	
+
+	//Get to closest tile in line with wumpus
 	int dist = 1000;
 	int nextX;
 	int nextY;
-	
-	auto xLine = s.find(xWump); //find the closest safe location in line to wump at x key
+
+	auto xLine = s.find(xWump); //find a key with x value in safe list
 	if(xLine != s.end()){
 		for(it = t.begin(); it != t.end(); it++){
-			int d = abs(it->first -xWump);
-			
+			int d = abs(it->first - xWump);
 			if(d < dist){
 				dist = d;
 				nextX = it->first;
 				nextY = it->second;
-				break;
+				break;	
 			}
 		}
 	}
 	
-	multimap<int, int> yRange; //if no x points available, or if there is a y point closer to current position
-	for(it = s.begin(); it != s.end(); it++){
-		if(it->second == yWump)
-			yRange.insert(pair<int, int>(it->first, it->second));
+	multimap<int, int> yRange;
+	for(it = s.begin(); it != s.end(); it++){//find a key with y value in safe list
+		if(it->second == yWump){
+			yRange.insert(pair<int, int> (it->first, it->second));
+		}
 	}
+
+
 	if(yRange.size() != 0){
 		for(it = t.begin(); it != t.end(); it++){
-			auto const &yLine = yRange.equal_range(it->first);
+			auto const& yLine = yRange.equal_range(it->first);
 			
 			for(i = yLine.first; i != yLine.second; i++){
-				int d = abs(it->second- yWump);
+				int d = abs(it->second - yWump);
+
 				if(d < dist){
 					dist = d;
 					nextX = it->first;
 					nextY = it->second;
+					break;
 				}
 			}
 		}
 	}
-	
-	
-	if(x == nextX){		//changing player position and direction to next, closest tile
-		if((nextY- y) == 1){
+
+	//go to position
+	if(x == nextX){
+		if((nextY-y) == 1){
 			if(dir == 0){
 				turnLeft(dir);
 				return TURN_LEFT;
@@ -1347,14 +1951,14 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 				return TURN_RIGHT;
 			}
 		}
-		else if((nextY - y) == -1){
+		else if((nextY-y) == -1){
 			if(dir == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
 			}
 			else if(dir == 1){
 				turnRight(dir);
-				return TURN_RIGHT;	
+				return TURN_RIGHT;
 			}
 			else if(dir == 2){
 				turnLeft(dir);
@@ -1363,11 +1967,11 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 			else if(dir == 3){
 				goForward(x, y, dir);
 				return FORWARD;
-			}	
+			}
 		}
 	}
 	else if(y == nextY){
-		if((nextX -x) == 1){
+		if((nextX-x) == 1){
 			if(dir == 0){
 				goForward(x, y, dir);
 				return FORWARD;
@@ -1385,7 +1989,7 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 				return TURN_LEFT;
 			}
 		}
-		else if((nextX-x) == -1){
+		else if((nextX-x) == -1){	
 			if(dir == 0){
 				turnRight(dir);
 				return TURN_RIGHT;
@@ -1402,9 +2006,12 @@ Agent::Action MyAI::wumpHunt(int &x, int &y, int &dir, int xL, int yL, bool xW, 
 				turnRight(dir);
 				return TURN_RIGHT;
 			}
+	
 		}
 	}
-}
+
+} 
+	
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================
