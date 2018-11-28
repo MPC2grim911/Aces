@@ -90,10 +90,11 @@ public:
 	void turnLeft(int &d);
 	void turnRight(int &d);
 	void goForward(int &x, int &y, int d);
-	void turn180(int &d);
+	bool turn180(int x, int y, int dir, int xL, int yL, bool xWall, bool yWall, multimap<int, int> s);
 
 	void checkSafe(int x, int y, multimap<int, int> &s);
 	void exShorten(int x, int y, multimap<int, int> &e);
+	void pitShorten(int x, int y, multimap<int, int> &p, multimap<int, int> p2);
 	void surTiles(int x, int y, int xL, int yL, bool xW, bool yW,  multimap<int, int> &s, multimap <int, int> &t);
 	void addOnly(multimap<int, int> &m, multimap <int, int> &t);
 	void bumpClear(int x, int y, int &xD, int &yD, int xL, int yL, bool xW, bool yW, multimap<int, int> &e);	

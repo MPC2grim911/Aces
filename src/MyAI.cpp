@@ -104,7 +104,10 @@ Agent::Action MyAI::getAction
 		travel = true;
 		xDest = 0;
 		yDest = 0;
-		goldFound = true;	
+
+		int dist = abs(xDest - xPos) + abs(yDest = yPos);
+		if(dist > 1)
+			goldFound = turn180(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe);;	
 		
 		return (GRAB);
 	}
@@ -124,11 +127,6 @@ Agent::Action MyAI::getAction
 				xWall = true;
 			}
 			xPos = xLim -1;
-			/*if(target){
-				xDest = xPos;
-				yDest = yPos;
-				
-			}*/
 			bumpClear(xPos, yPos, xDest, yDest, xLim, yLim, xWall, yWall, explore);	
 			if(yPos == yLim){
 				turnRight(dir);
@@ -189,8 +187,10 @@ Agent::Action MyAI::getAction
 			
 		}
 		
-		if(wHunt)		
+		if(wHunt){
+//			cout << "entered hunt" << endl;		
 			return wumpHunt(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe, xWump, yWump, arrowShot);
+		}
 	}
 	
 	if(target){
@@ -230,8 +230,10 @@ Agent::Action MyAI::getAction
 			}
 		}
 
-		if(travel)
+		if(travel){
+//			cout << "going to travel" << endl;
 			return naviPath(xPos, yPos, dir, xLim, yLim, xDest, yDest, xWall, yWall, safe, prev);
+		}
 	}
 		
 	if(moves == 0 ) //1st turn
@@ -288,6 +290,9 @@ Agent::Action MyAI::getAction
 			checkSafe(xPos, yPos, safe);
 			exShorten(xPos, yPos, explore);
 
+			if(unknownPit.size() != 0){
+				pitShorten(xPos, yPos, unknownPit, pit);
+			}
 			surTiles(xPos, yPos, xLim, yLim, xWall, yWall, safe, testPos);
 
 			if(stench && breeze){
@@ -310,6 +315,16 @@ Agent::Action MyAI::getAction
 						wCheckP(explore, unknownWump, unknownPit, pit, testPos);//compare with pits
 				}
 				if(wumpus){
+					cout << "if stench only and wumpus is dead:" << endl;
+					map<int, int>::iterator i;
+					cout << "   explore:" << endl;
+					for(i = explore.begin(); i != explore.end(); i++){
+						cout << "\t" << i->first << " " << i->second << endl;
+					}
+					cout << "  testPos:" << endl;
+					for(i = testPos.begin(); i != testPos.end(); i++){
+						cout << "\t" << i->first << " " << i->second << endl;
+					}
 					addOnly(explore, testPos);
 				}	
 			}
@@ -359,7 +374,6 @@ Agent::Action MyAI::getAction
 
 			if(!wumpus && !wFound){
 				if(unknownWump.size() == 1 || wump.size() == 1){
-					wumpus = true;
 					map<int, int>::iterator i;
 
 					if(wump.size() == 0){
@@ -499,7 +513,7 @@ Agent::Action MyAI::getAction
 					}
 				}
 /**/				cout << "take a step back and go to target" << endl;		
-				turnHlf = true;
+				turnHlf = turn180(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe);
 				travel = true;
 				turnLeft(dir);	
 				return TURN_LEFT;
@@ -512,6 +526,10 @@ Agent::Action MyAI::getAction
 			if(moves != 0)
 				exShorten(xPos, yPos, explore);
 		
+			if(unknownPit.size() != 0){
+				pitShorten(xPos, yPos, unknownPit, pit);
+			}
+
 			if(pit.size() != 0)
 				exDelSB(explore, pit);
 				
@@ -523,7 +541,7 @@ Agent::Action MyAI::getAction
 
 			testPos.clear();
 
-			cout << "Safe Points: " << endl;
+/**/			cout << "Safe Points: " << endl;
 			map<int, int>::iterator it;
 			for(it = safe.begin(); it != safe.end(); it++){
 				cout << "\t" << it->first << " " << it->second << endl;
@@ -533,6 +551,39 @@ Agent::Action MyAI::getAction
 				cout << "\t" << it->first << " " << it->second << endl;
 			}
 
+			if(!wumpus && !wFound){
+				if(unknownWump.size() == 1 || wump.size() == 1){
+					map<int, int>::iterator i;
+
+					if(wump.size() == 0){
+						i = unknownWump.begin();
+						xWump = i->first;
+						yWump = i->second;
+					}
+					else{
+						i = wump.begin();
+						xWump = i->first;
+						yWump = i->second;
+					}
+					unknownWump.clear();
+					wFound = true;
+/**/					cout << "Wumpus Found" << endl;
+				}
+			}
+			if(wFound){
+				//take out wumpus point from explore list
+				//if explore size == 0, then hunt wumpus
+				if(!wumpus)		
+					exShorten(xWump, yWump, explore);	
+				if(explore.size() == 0 && !arrowShot){
+/**/					cout << "Hunting time" << endl;
+					hunt = true;
+					wHunt = true;
+					turnRight(dir);
+					return TURN_RIGHT;
+				}
+			}
+				
 			if(explore.size() == 0 || explore.empty()){
 				cout << "going back" << endl; 
 				goBack = true;
@@ -838,20 +889,57 @@ void MyAI:: goForward(int &x, int &y, int d){
 	return;
 }
 
-void turn180(int &d){
-	if(d == 0){
-		d = 2;
+bool MyAI::turn180(int x, int y, int dir, int xL, int yL, bool xWall, bool yWall, multimap<int, int> s){
+	int xCheck = x;
+	int yCheck = y;
+
+	map<int, int>::iterator i;
+	if(dir == 0){
+		if((x-1) >= 0){
+			xCheck = x - 1;
+
+			for(i = s.begin(); i != s.end(); i++){
+				if(i->first == xCheck && i->second == yCheck)
+					return true;
+			}
+		}
 	}
-	else if(d == 1){
-		d = 3;
+	else if(dir == 1){
+		if((y-1) >= 0){
+			yCheck = y - 1;
+
+			for(i = s.begin(); i != s.end(); i++){
+				if(i->first == xCheck && i->second == yCheck)
+					return true;
+			}
+		}
+
 	}
-	else if(d == 2){
-		d = 0;
+	else if(dir == 2){
+		if(xWall){
+			if((x+1) <= xL){
+				xCheck = x + 1;
+
+				for(i = s.begin(); i != s.end(); i++){
+					if(i->first == xCheck && i->second == yCheck)
+						return true;
+				}
+			}
+		}		
 	}
-	else if(d == 3){
-		d = 1;
+	else if(dir == 3){
+		if(yWall){
+			if((y+1) <= yL){
+				yCheck = y + 1;
+
+				for(i = s.begin(); i != s.end(); i++){
+					if(i->first == xCheck && i->second == yCheck)
+						return true;
+				}
+			}
+		}		
 	}
-	return;
+	return false;
 }
 
 
@@ -924,6 +1012,39 @@ void MyAI::exShorten(int x, int y, multimap<int, int> &e){
 	return;
 }
 
+void MyAI::pitShorten(int x, int y, multimap<int, int> &p, multimap<int, int> p2){
+	map<int, int>::iterator it;
+	map<int, int>::iterator i;
+	if(p.count(x) == 1){
+		auto pDel = p.find(x);
+		if(pDel != p.end()){
+			if(pDel->second == y)
+				p.erase(x);
+		}
+	}
+	else{
+		auto const& pDel = p.equal_range(x);
+		for(it = pDel.first; it != pDel.second; it++){
+			if(it->second == y){
+				p.erase(it);
+				break;
+			}
+		}
+	}
+
+	if(p2.size() != 0){
+		for(it = p2.begin(); it != p2.end(); it++){
+			for(i = p.begin(); i != p.end(); i++){
+				if(i->first == it->first && i->second == it->second){
+					p.erase(i);
+					break;
+				}
+			}
+		}
+	}
+	
+	return;
+}
 void MyAI::surTiles(int x, int y, int xL, int yL, bool xW, bool yW, multimap<int, int> &s, multimap<int, int> &t){
 	
 	if(yW){
@@ -1018,16 +1139,16 @@ void MyAI::addOnly(multimap<int, int> &m, multimap<int, int> &t){
 void MyAI::bumpClear(int x, int y, int &xD, int &yD, int xL, int yL, bool xW, bool yW, multimap<int, int> &e){
 	xD = x;
 	yD = y;
-	cout << "bumpClear: " << endl;
+/*	cout << "bumpClear: " << endl;
 	map<int, int>::iterator i;
 	cout << "  Before:" << endl;
 	cout << "    explore:" << endl;
 	for(i = e.begin(); i != e.end(); i++){
 		cout << "\t" << i->first << " " << i->second << endl;
 	}
-
+*/
 	map<int, int>::iterator it;
-	//map<int, int>::iterator i;
+	map<int, int>::iterator i;
 	if(xW){
 		auto xDel = e.find(xL);
 		if(xDel != e.end()){
@@ -1059,12 +1180,12 @@ void MyAI::bumpClear(int x, int y, int &xD, int &yD, int xL, int yL, bool xW, bo
 			}	
 		}
 	}
-	cout << "  After:" << endl;
+/*	cout << "  After:" << endl;
 	cout << "    explore:" << endl;
 	for(i = e.begin(); i != e.end(); i++){
 		cout << "\t" << i->first << " " << i->second << endl;
 	}
-
+*/
 	return;
 }	
 	
@@ -1402,13 +1523,13 @@ void MyAI::pCheckW(multimap<int, int> &e, multimap<int, int> &p, multimap<int, i
 }
 
 bool MyAI::getTarget(int x, int y, int dir, multimap<int, int> e, int& xD, int& yD, bool& n){
-	cout << "getTarget: " << endl;
+/*	cout << "getTarget: " << endl;
 	map<int, int>:: iterator i;
 	cout << "    explore:" << endl;
 	for(i = e.begin(); i != e.end(); i++){
 		cout << "\t" << i->first << " " << i->second << endl;
 	}
-	
+*/	
 
 	map<int, int>::iterator itT;
 	int dist = 1000;
@@ -1483,10 +1604,15 @@ bool MyAI::getTarget(int x, int y, int dir, multimap<int, int> e, int& xD, int& 
 
 
 Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, int yD,bool xW, bool yW, multimap<int, int> s, multimap<int, int> &pv){
-/*	cout << "Navigate to path: " << endl;
+	cout << "Navigate to path: " << endl;
 	map<int, int>::iterator c;
+	cout << "Safe: " << endl;
+	for(c = s.begin(); c != s.end(); c++){
+		cout << "\t" << c->first << " " << c->second << endl;
+	}
+
 	cout << "  Before: " << endl;
-*/	
+		
 
 	multimap<int, int> t;
 	if(yW){
@@ -1513,15 +1639,17 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 		t.insert(pair<int, int> ((x - 1), y));
 
 
-/*	cout << "    Navi TestPos:" << endl;
+	cout << "    Navi TestPos:" << endl;
 	for(c = t.begin(); c != t.end(); c++){
 		cout << "\t" << c->first << " " << c->second << endl;
 	}
-*/
+
 	
 	map<int, int>::iterator it;
 	map<int, int>::iterator itr;
 
+	multimap<int, int> tSave;
+	tSave.insert(t.begin(), t.end());
 	exDelSB(t, pv);
 	pv.insert(pair<int, int> (x, y));
 	multimap<int, int> tPath;
@@ -1544,19 +1672,45 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 			tPath.insert(pair<int, int> (xPath, yPath));
 		}
 	}
+	
+	if(tPath.size() == 0){
+		pv.clear();
+		pv.insert(pair<int, int>(x, y));
+		
+		for(it = tSave.begin(); it != tSave.end(); it++){
+			auto const& tPaths = s.equal_range(it->first);
+			bool inSafe = false;
+			int xPath;
+			int yPath;
+			for(itr = tPaths.first; itr != tPaths.second; itr++){
+				if(itr->second == it->second){
+					inSafe = true;
+					xPath = it->first;
+					yPath = it->second;
+					break;
+				}
+
+			}
+
+			if(inSafe){
+				tPath.insert(pair<int, int> (xPath, yPath));
+			}
+		}
+		
+	}
+
 	t.clear();
 	t.insert(tPath.begin(), tPath.end());
 	tPath.clear();
-
-/*	cout << "  After Safe: " << endl;
-	map<int, int>::iterator c;
+	
+	cout << "  After Safe: " << endl;
+	//map<int, int>::iterator c;
 	cout << "    Navi TestPos:" << endl;
 	for(c = t.begin(); c != t.end(); c++){
 		cout << "\t" << c->first << " " << c->second << endl;
 	}
-*/
-
-
+	
+	
 	int nextX = xD;
 	int nextY = yD;
 	int dist = abs(xD - x) + abs(yD - y);
@@ -1570,8 +1724,20 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 				nextY = it->second;
 			}
 		}
+		if(dist != 1){
+			int d = 10;
+			for(it = t.begin(); it != t.end(); it++){
+				int d2 = abs(xD - it->first) + abs(yD - it->second);
+
+				if(d2 < d){
+					d2 = d;
+					nextX = it->first;
+					nextY = it->second;
+				}
+			}
+		}
 	}
-//	cout << "next step " << nextX << ", " << nextY << endl;
+/**/	cout << "next step " << nextX << ", " << nextY << endl;
 
 	if(x == nextX){
 		if((nextY-y) == 1){
@@ -1680,6 +1846,13 @@ void MyAI::wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool
 	if((xWump-1) >= 0)
 		w.insert(pair<int, int> ((xWump - 1), yWump));
 
+/**/	cout << "wumpExp: " << endl;
+	cout << "  surrounding points" << endl; 
+	for(i = w.begin(); i != w.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+
+
 	multimap<int, int> wPath;
 	for(it = w.begin(); it != w.end(); it++){
 		auto const& wPaths = s.equal_range(it->first);
@@ -1701,6 +1874,14 @@ void MyAI::wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool
 	}
 	w.clear();
 	w.insert(wPath.begin(), wPath.end());
+
+	cout<< " After safe:" << endl;
+ 	for(i = w.begin(); i != w.end(); i++){
+		cout << "\t" << i->first << " " << i->second << endl;
+	}
+
+
+	addOnly(e, w);
 
 	int dist = 1000;
 	if(dir == 1 || dir == 3){
@@ -1745,7 +1926,7 @@ void MyAI::wumpExp(int x, int y, int dir, int xL, int yL, int &xD, int &yD, bool
 	}
 	
 	for(it = w.begin(); it != w.end(); it++){
-		e.insert(pair<int, int> (it->first, it->second));
+		
 		int d = abs(it->first - x) + abs(it->second -y);
 		if(d < dist){
 			dist = d;
