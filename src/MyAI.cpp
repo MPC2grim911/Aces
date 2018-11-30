@@ -105,7 +105,7 @@ Agent::Action MyAI::getAction
 		xDest = 0;
 		yDest = 0;
 
-		int dist = abs(xDest - xPos) + abs(yDest = yPos);
+		int dist = abs(xDest - xPos) + abs(yDest - yPos);
 		if(dist > 1)
 			goldFound = turn180(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe);;	
 		
@@ -513,7 +513,9 @@ Agent::Action MyAI::getAction
 					}
 				}
 /**/				cout << "take a step back and go to target" << endl;		
-				turnHlf = turn180(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe);
+				int dist = abs(xDest - xPos) + abs(yDest - yPos);
+				if(dist > 1)
+					turnHlf = turn180(xPos, yPos, dir, xLim, yLim, xWall, yWall, safe);
 				travel = true;
 				turnLeft(dir);	
 				return TURN_LEFT;
@@ -1604,7 +1606,7 @@ bool MyAI::getTarget(int x, int y, int dir, multimap<int, int> e, int& xD, int& 
 
 
 Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, int yD,bool xW, bool yW, multimap<int, int> s, multimap<int, int> &pv){
-	cout << "Navigate to path: " << endl;
+/*	cout << "Navigate to path: " << endl;
 	map<int, int>::iterator c;
 	cout << "Safe: " << endl;
 	for(c = s.begin(); c != s.end(); c++){
@@ -1612,7 +1614,7 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 	}
 
 	cout << "  Before: " << endl;
-		
+*/		
 
 	multimap<int, int> t;
 	if(yW){
@@ -1639,11 +1641,11 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 		t.insert(pair<int, int> ((x - 1), y));
 
 
-	cout << "    Navi TestPos:" << endl;
+/*	cout << "    Navi TestPos:" << endl;
 	for(c = t.begin(); c != t.end(); c++){
 		cout << "\t" << c->first << " " << c->second << endl;
 	}
-
+*/
 	
 	map<int, int>::iterator it;
 	map<int, int>::iterator itr;
@@ -1674,8 +1676,8 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 	}
 	
 	if(tPath.size() == 0){
-		pv.clear();
-		pv.insert(pair<int, int>(x, y));
+		//pv.clear();
+		//pv.insert(pair<int, int>(x, y));
 		
 		for(it = tSave.begin(); it != tSave.end(); it++){
 			auto const& tPaths = s.equal_range(it->first);
@@ -1698,18 +1700,17 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 		}
 		
 	}
-
 	t.clear();
 	t.insert(tPath.begin(), tPath.end());
 	tPath.clear();
 	
-	cout << "  After Safe: " << endl;
+/*	cout << "  After Safe: " << endl;
 	//map<int, int>::iterator c;
 	cout << "    Navi TestPos:" << endl;
 	for(c = t.begin(); c != t.end(); c++){
 		cout << "\t" << c->first << " " << c->second << endl;
 	}
-	
+*/	
 	
 	int nextX = xD;
 	int nextY = yD;
@@ -1737,7 +1738,7 @@ Agent::Action MyAI::naviPath(int &x, int &y, int &dir, int xL, int yL, int xD, i
 			}
 		}
 	}
-/**/	cout << "next step " << nextX << ", " << nextY << endl;
+//	cout << "next step " << nextX << ", " << nextY << endl;
 
 	if(x == nextX){
 		if((nextY-y) == 1){
